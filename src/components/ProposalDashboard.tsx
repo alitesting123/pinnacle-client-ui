@@ -9,7 +9,7 @@ import { TimelineView } from "./TimelineView";
 import { QuestionsPanel } from "./QuestionsPanel";
 import { SuggestionPanel } from "./SuggestionPanel";
 import { QuestionModal } from "./QuestionModal";
-import { ProposalData, ProposalItem } from "@/types/proposal";
+import { ProposalData, ProposalItem, QuestionReply } from "@/types/proposal";
 import { EquipmentQuestionData } from "./EquipmentQuestion";
 import { mockQuestions } from "@/data/mockQuestions";
 import { toast } from "@/hooks/use-toast";
@@ -58,7 +58,8 @@ export function ProposalDashboard({ proposalData }: ProposalDashboardProps) {
       question,
       status: 'pending',
       askedBy: 'You',
-      askedAt: new Date().toISOString()
+      askedAt: new Date().toISOString(),
+      replies: []
     };
 
     setQuestions(prev => [newQuestion, ...prev]);
@@ -68,18 +69,24 @@ export function ProposalDashboard({ proposalData }: ProposalDashboardProps) {
     });
   };
 
-  const handleAnswerQuestion = (questionId: string, answer: string) => {
-    setQuestions(prev => prev.map(q => 
-      q.id === questionId 
-        ? { 
-            ...q, 
-            answer, 
-            status: 'answered' as const,
-            answeredBy: 'Shahar Zlochover',
-            answeredAt: new Date().toISOString()
-          }
-        : q
-    ));
+  const handleReplyToQuestion = (questionId: string, reply: string) => {
+    setQuestions(prev => prev.map(q => {
+      if (q.id === questionId) {
+        const newReply: QuestionReply = {
+          id: `r${Date.now()}`,
+          message: reply,
+          author: 'You',
+          timestamp: new Date().toISOString(),
+          isFromTeam: false
+        };
+        
+        return {
+          ...q,
+          replies: [...(q.replies || []), newReply]
+        };
+      }
+      return q;
+    }));
   };
 
   const handleApplySuggestion = (suggestionId: string) => {
@@ -257,7 +264,7 @@ export function ProposalDashboard({ proposalData }: ProposalDashboardProps) {
             <TabsContent value="questions" className="mt-8">
               <QuestionsPanel 
                 questions={questions}
-                onAnswerQuestion={handleAnswerQuestion}
+                onReplyToQuestion={handleReplyToQuestion}
               />
             </TabsContent>
 

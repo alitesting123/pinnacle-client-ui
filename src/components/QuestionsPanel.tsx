@@ -9,10 +9,10 @@ import { toast } from "@/hooks/use-toast";
 
 interface QuestionsPanelProps {
   questions: EquipmentQuestionData[];
-  onAnswerQuestion: (questionId: string, answer: string) => void;
+  onReplyToQuestion: (questionId: string, reply: string) => void;
 }
 
-export function QuestionsPanel({ questions, onAnswerQuestion }: QuestionsPanelProps) {
+export function QuestionsPanel({ questions, onReplyToQuestion }: QuestionsPanelProps) {
   const [filter, setFilter] = useState<'all' | 'pending' | 'answered'>('all');
 
   const filteredQuestions = questions.filter(q => {
@@ -23,11 +23,11 @@ export function QuestionsPanel({ questions, onAnswerQuestion }: QuestionsPanelPr
   const pendingCount = questions.filter(q => q.status === 'pending').length;
   const answeredCount = questions.filter(q => q.status === 'answered').length;
 
-  const handleAnswerQuestion = (questionId: string, answer: string) => {
-    onAnswerQuestion(questionId, answer);
+  const handleReplyToQuestion = (questionId: string, reply: string) => {
+    onReplyToQuestion(questionId, reply);
     toast({
-      title: "Answer Submitted",
-      description: "Your answer has been sent to the client.",
+      title: "Reply Sent",
+      description: "Your reply has been added to the conversation.",
     });
   };
 
@@ -48,9 +48,9 @@ export function QuestionsPanel({ questions, onAnswerQuestion }: QuestionsPanelPr
             <HelpCircle className="h-6 w-6 text-primary" />
           </div>
           <div>
-            <h2 className="text-2xl font-bold text-foreground">Equipment Questions</h2>
+            <h2 className="text-2xl font-bold text-foreground">Equipment Q&A</h2>
             <p className="text-sm text-muted-foreground">
-              Client questions about specific equipment and services
+              Client questions and team responses about specific equipment
             </p>
           </div>
         </div>
@@ -79,7 +79,7 @@ export function QuestionsPanel({ questions, onAnswerQuestion }: QuestionsPanelPr
                     <div className="flex items-center gap-2 mb-4">
                       <h3 className="text-lg font-semibold text-foreground">{sectionName}</h3>
                       <Badge variant="secondary" className="text-xs">
-                        {sectionQuestions.length} questions
+                        {sectionQuestions.length} conversation{sectionQuestions.length !== 1 ? 's' : ''}
                       </Badge>
                     </div>
                     <div className="space-y-4">
@@ -87,7 +87,7 @@ export function QuestionsPanel({ questions, onAnswerQuestion }: QuestionsPanelPr
                         <EquipmentQuestion
                           key={question.id}
                           question={question}
-                          onAnswer={handleAnswerQuestion}
+                          onReply={handleReplyToQuestion}
                         />
                       ))}
                     </div>

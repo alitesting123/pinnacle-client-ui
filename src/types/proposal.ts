@@ -71,3 +71,12 @@ export interface Suggestion {
   savings: number;
   confidence: 'low' | 'medium' | 'high';
 }
+
+// New interface for question replies
+export interface QuestionReply {
+  id: string;
+  message: string;
+  author: string;
+  timestamp: string;
+  isFromTeam: boolean;
+}

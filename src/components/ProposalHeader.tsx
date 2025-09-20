@@ -16,6 +16,17 @@ export function ProposalHeader({ eventDetails, totalCost }: ProposalHeaderProps)
     completed: "bg-success text-success-foreground"
   };
 
+  // Format date range as "May 31 - Jun 03, 2026"
+  const formatDateRange = (startDate: string, endDate: string) => {
+    const start = new Date(startDate);
+    const end = new Date(endDate);
+    
+    const startMonth = format(start, 'MMM dd');
+    const endFormatted = format(end, 'MMM dd, yyyy');
+    
+    return `${startMonth} - ${endFormatted}`;
+  };
+
   return (
     <Card className="border-card-border shadow-md">
       <div className="p-8 bg-gradient-subtle">
@@ -54,7 +65,7 @@ export function ProposalHeader({ eventDetails, totalCost }: ProposalHeaderProps)
             <div>
               <p className="text-sm text-muted-foreground">Event Dates</p>
               <p className="font-semibold text-foreground">
-                {format(new Date(eventDetails.startDate), 'MMM dd')} - {format(new Date(eventDetails.endDate), 'MMM dd, yyyy')}
+                {formatDateRange(eventDetails.startDate, eventDetails.endDate)}
               </p>
             </div>
           </div>
