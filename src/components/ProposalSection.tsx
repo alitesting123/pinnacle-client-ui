@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { ChevronDown, ChevronRight, Edit3, MessageCircle } from "lucide-react";
+import { ChevronDown, ChevronRight, Edit3, HelpCircle } from "lucide-react";
 import { ProposalSection as IProposalSection } from "@/types/proposal";
 import { cn } from "@/lib/utils";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
@@ -11,14 +11,14 @@ interface ProposalSectionProps {
   section: IProposalSection;
   onToggle: (sectionId: string) => void;
   onItemEdit?: (sectionId: string, itemId: string) => void;
-  onSectionQuestion?: (sectionId: string) => void;
+  onItemQuestion?: (sectionId: string, itemId: string) => void;
 }
 
 export function ProposalSection({ 
   section, 
   onToggle, 
   onItemEdit, 
-  onSectionQuestion 
+  onItemQuestion 
 }: ProposalSectionProps) {
   const getCategoryIcon = (category: string) => {
     const icons: Record<string, string> = {
@@ -64,17 +64,6 @@ export function ProposalSection({
                 </div>
               </div>
               <div className="flex items-center gap-3">
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onSectionQuestion?.(section.id);
-                  }}
-                  className="hover:bg-primary-light"
-                >
-                  <MessageCircle className="h-4 w-4" />
-                </Button>
                 <div className="text-right">
                   <p className="text-2xl font-bold text-primary">{formatCurrency(section.total)}</p>
                   <p className="text-xs text-muted-foreground">Section Total</p>
@@ -125,14 +114,26 @@ export function ProposalSection({
                           {formatCurrency(item.subtotal)}
                         </td>
                         <td className="p-4 text-center">
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => onItemEdit?.(section.id, item.id)}
-                            className="hover:bg-primary-light"
-                          >
-                            <Edit3 className="h-4 w-4" />
-                          </Button>
+                          <div className="flex items-center justify-center gap-1">
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => onItemEdit?.(section.id, item.id)}
+                              className="hover:bg-primary-light"
+                              title="Edit item"
+                            >
+                              <Edit3 className="h-4 w-4" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => onItemQuestion?.(section.id, item.id)}
+                              className="hover:bg-warning/20"
+                              title="Ask question about this item"
+                            >
+                              <HelpCircle className="h-4 w-4 text-warning" />
+                            </Button>
+                          </div>
                         </td>
                       </tr>
                     ))}

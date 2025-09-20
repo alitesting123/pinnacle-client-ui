@@ -2,13 +2,16 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { MessageCircle, Calendar, Lightbulb, FileText, Settings, Share2 } from "lucide-react";
+import { HelpCircle, Calendar, Lightbulb, FileText, Settings, Share2 } from "lucide-react";
 import { ProposalHeader } from "./ProposalHeader";
 import { ProposalSection } from "./ProposalSection";
 import { TimelineView } from "./TimelineView";
-import { ChatPanel } from "./ChatPanel";
+import { QuestionsPanel } from "./QuestionsPanel";
 import { SuggestionPanel } from "./SuggestionPanel";
-import { ProposalData } from "@/types/proposal";
+import { QuestionModal } from "./QuestionModal";
+import { ProposalData, ProposalItem } from "@/types/proposal";
+import { EquipmentQuestionData } from "./EquipmentQuestion";
+import { mockQuestions } from "@/data/mockQuestions";
 import { toast } from "@/hooks/use-toast";
 
 interface ProposalDashboardProps {
@@ -17,8 +20,9 @@ interface ProposalDashboardProps {
 
 export function ProposalDashboard({ proposalData }: ProposalDashboardProps) {
   const [sections, setSections] = useState(proposalData.sections);
-  const [isChatOpen, setIsChatOpen] = useState(false);
-  const [chatQuestion, setChatQuestion] = useState<string>('');
+  const [questions, setQuestions] = useState<EquipmentQuestionData[]>(mockQuestions);
+  const [isQuestionModalOpen, setIsQuestionModalOpen] = useState(false);
+  const [selectedItem, setSelectedItem] = useState<{ item: ProposalItem; sectionName: string } | null>(null);
 
   const handleSectionToggle = (sectionId: string) => {
     setSections(prev => prev.map(section => 
@@ -35,10 +39,47 @@ export function ProposalDashboard({ proposalData }: ProposalDashboardProps) {
     });
   };
 
-  const handleSectionQuestion = (sectionId: string) => {
+  const handleItemQuestion = (sectionId: string, itemId: string) => {
     const section = sections.find(s => s.id === sectionId);
-    setChatQuestion(`I have a question about the ${section?.title} section. Can you help me understand the equipment options?`);
-    setIsChatOpen(true);
+    const item = section?.items.find(i => i.id === itemId);
+    
+    if (item && section) {
+      setSelectedItem({ item, sectionName: section.title });
+      setIsQuestionModalOpen(true);
+    }
+  };
+
+  const handleSubmitQuestion = (question: string, itemId: string, itemName: string, sectionName: string) => {
+    const newQuestion: EquipmentQuestionData = {
+      id: `q${Date.now()}`,
+      itemId,
+      itemName,
+      sectionName,
+      question,
+      status: 'pending',
+      askedBy: 'You',
+      askedAt: new Date().toISOString()
+    };
+
+    setQuestions(prev => [newQuestion, ...prev]);
+    toast({
+      title: "Question Submitted",
+      description: `Your question about "${itemName}" has been sent to the Pinnacle Live team.`,
+    });
+  };
+
+  const handleAnswerQuestion = (questionId: string, answer: string) => {
+    setQuestions(prev => prev.map(q => 
+      q.id === questionId 
+        ? { 
+            ...q, 
+            answer, 
+            status: 'answered' as const,
+            answeredBy: 'Shahar Zlochover',
+            answeredAt: new Date().toISOString()
+          }
+        : q
+    ));
   };
 
   const handleApplySuggestion = (suggestionId: string) => {
@@ -106,11 +147,15 @@ export function ProposalDashboard({ proposalData }: ProposalDashboardProps) {
               <Button 
                 variant="default"
                 size="sm"
-                onClick={() => setIsChatOpen(true)}
                 className="bg-gradient-primary hover:opacity-90"
               >
-                <MessageCircle className="h-4 w-4 mr-2" />
-                Chat Support
+                <HelpCircle className="h-4 w-4 mr-2" />
+                Equipment Q&A
+                {questions.filter(q => q.status === 'pending').length > 0 && (
+                  <Badge className="ml-2 h-5 w-5 p-0 text-xs bg-warning text-warning-foreground">
+                    {questions.filter(q => q.status === 'pending').length}
+                  </Badge>
+                )}
               </Button>
             </div>
           </div>
@@ -137,13 +182,18 @@ export function ProposalDashboard({ proposalData }: ProposalDashboardProps) {
                 <Calendar className="h-4 w-4" />
                 Timeline
               </TabsTrigger>
+              <TabsTrigger value="questions" className="flex items-center gap-2 relative">
+                <HelpCircle className="h-4 w-4" />
+                Questions & Answers
+                {questions.filter(q => q.status === 'pending').length > 0 && (
+                  <Badge className="absolute -top-2 -right-2 h-5 w-5 p-0 text-xs bg-warning text-warning-foreground">
+                    {questions.filter(q => q.status === 'pending').length}
+                  </Badge>
+                )}
+              </TabsTrigger>
               <TabsTrigger value="suggestions" className="flex items-center gap-2">
                 <Lightbulb className="h-4 w-4" />
                 Suggestions
-              </TabsTrigger>
-              <TabsTrigger value="analytics" className="flex items-center gap-2">
-                <Settings className="h-4 w-4" />
-                Analytics
               </TabsTrigger>
             </TabsList>
 
@@ -174,7 +224,7 @@ export function ProposalDashboard({ proposalData }: ProposalDashboardProps) {
                     section={section}
                     onToggle={handleSectionToggle}
                     onItemEdit={handleItemEdit}
-                    onSectionQuestion={handleSectionQuestion}
+                    onItemQuestion={handleItemQuestion}
                   />
                 ))}
               </div>
@@ -204,33 +254,33 @@ export function ProposalDashboard({ proposalData }: ProposalDashboardProps) {
               <TimelineView timeline={proposalData.timeline} />
             </TabsContent>
 
+            <TabsContent value="questions" className="mt-8">
+              <QuestionsPanel 
+                questions={questions}
+                onAnswerQuestion={handleAnswerQuestion}
+              />
+            </TabsContent>
+
             <TabsContent value="suggestions" className="mt-8">
               <SuggestionPanel 
                 suggestions={mockSuggestions}
                 onApplySuggestion={handleApplySuggestion}
               />
             </TabsContent>
-
-            <TabsContent value="analytics" className="mt-8">
-              <div className="text-center py-12">
-                <div className="p-4 bg-secondary/30 rounded-full w-16 h-16 mx-auto mb-4 flex items-center justify-center">
-                  <Settings className="h-8 w-8 text-muted-foreground" />
-                </div>
-                <h3 className="text-xl font-semibold text-foreground mb-2">Analytics Coming Soon</h3>
-                <p className="text-muted-foreground">
-                  Detailed proposal analytics and performance metrics will be available here.
-                </p>
-              </div>
-            </TabsContent>
           </Tabs>
         </div>
       </div>
 
-      {/* Chat Panel */}
-      <ChatPanel 
-        isOpen={isChatOpen}
-        onClose={() => setIsChatOpen(false)}
-        initialQuestion={chatQuestion}
+      {/* Question Modal */}
+      <QuestionModal
+        isOpen={isQuestionModalOpen}
+        onClose={() => {
+          setIsQuestionModalOpen(false);
+          setSelectedItem(null);
+        }}
+        item={selectedItem?.item}
+        sectionName={selectedItem?.sectionName}
+        onSubmitQuestion={handleSubmitQuestion}
       />
     </div>
   );
