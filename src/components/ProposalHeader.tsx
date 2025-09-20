@@ -1,0 +1,91 @@
+import { Badge } from "@/components/ui/badge";
+import { Card } from "@/components/ui/card";
+import { Calendar, MapPin, User, Clock, Building } from "lucide-react";
+import { EventDetails } from "@/types/proposal";
+import { format } from "date-fns";
+
+interface ProposalHeaderProps {
+  eventDetails: EventDetails;
+  totalCost: number;
+}
+
+export function ProposalHeader({ eventDetails, totalCost }: ProposalHeaderProps) {
+  const statusColors = {
+    tentative: "bg-warning text-warning-foreground",
+    confirmed: "bg-accent text-accent-foreground", 
+    completed: "bg-success text-success-foreground"
+  };
+
+  return (
+    <Card className="border-card-border shadow-md">
+      <div className="p-8 bg-gradient-subtle">
+        <div className="flex items-start justify-between mb-6">
+          <div>
+            <div className="flex items-center gap-3 mb-2">
+              <h1 className="text-3xl font-bold text-foreground">{eventDetails.clientName}</h1>
+              <Badge className={statusColors[eventDetails.status]}>
+                {eventDetails.status.charAt(0).toUpperCase() + eventDetails.status.slice(1)}
+              </Badge>
+            </div>
+            <p className="text-lg text-muted-foreground">Job #{eventDetails.jobNumber} • Version {eventDetails.version}</p>
+          </div>
+          <div className="text-right">
+            <p className="text-3xl font-bold text-primary">${totalCost.toLocaleString()}</p>
+            <p className="text-sm text-muted-foreground">Total Estimate</p>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className="flex items-center gap-3">
+            <div className="p-2 bg-primary-light rounded-lg">
+              <Building className="h-5 w-5 text-primary" />
+            </div>
+            <div>
+              <p className="text-sm text-muted-foreground">Venue</p>
+              <p className="font-semibold text-foreground">{eventDetails.venue}</p>
+              <p className="text-xs text-muted-foreground">{eventDetails.eventLocation}</p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-3">
+            <div className="p-2 bg-primary-light rounded-lg">
+              <Calendar className="h-5 w-5 text-primary" />
+            </div>
+            <div>
+              <p className="text-sm text-muted-foreground">Event Dates</p>
+              <p className="font-semibold text-foreground">
+                {format(new Date(eventDetails.startDate), 'MMM dd')} - {format(new Date(eventDetails.endDate), 'MMM dd, yyyy')}
+              </p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-3">
+            <div className="p-2 bg-primary-light rounded-lg">
+              <User className="h-5 w-5 text-primary" />
+            </div>
+            <div>
+              <p className="text-sm text-muted-foreground">Sales Contact</p>
+              <p className="font-semibold text-foreground">{eventDetails.preparedBy}</p>
+              <p className="text-xs text-muted-foreground">{eventDetails.email}</p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-3">
+            <div className="p-2 bg-primary-light rounded-lg">
+              <Clock className="h-5 w-5 text-primary" />
+            </div>
+            <div>
+              <p className="text-sm text-muted-foreground">Last Modified</p>
+              <p className="font-semibold text-foreground">
+                {format(new Date(eventDetails.lastModified), 'MMM dd, yyyy')}
+              </p>
+              <p className="text-xs text-muted-foreground">
+                {format(new Date(eventDetails.lastModified), 'h:mm a')}
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </Card>
+  );
+}
