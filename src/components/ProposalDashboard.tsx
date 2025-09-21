@@ -1,3 +1,4 @@
+// src/components/ProposalDashboard.tsx
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -9,8 +10,7 @@ import { TimelineView } from "./TimelineView";
 import { QuestionsPanel } from "./QuestionsPanel";
 import { SuggestionPanel } from "./SuggestionPanel";
 import { QuestionModal } from "./QuestionModal";
-import { Footer } from "./Footer";
-import { ProposalData, ProposalItem, QuestionReply } from "@/types/proposal";
+import { ProposalData, ProposalItem } from "@/types/proposal";
 import { EquipmentQuestionData } from "./EquipmentQuestion";
 import { mockQuestions } from "@/data/mockQuestions";
 import { toast } from "@/hooks/use-toast";
@@ -34,8 +34,10 @@ export function ProposalDashboard({ proposalData }: ProposalDashboardProps) {
   };
 
   const handleItemEdit = (sectionId: string, itemId: string) => {
-    // Edit functionality removed
-    return;
+    toast({
+      title: "Edit Item",
+      description: "Item editing functionality coming soon.",
+    });
   };
 
   const handleItemQuestion = (sectionId: string, itemId: string) => {
@@ -57,8 +59,7 @@ export function ProposalDashboard({ proposalData }: ProposalDashboardProps) {
       question,
       status: 'pending',
       askedBy: 'You',
-      askedAt: new Date().toISOString(),
-      replies: []
+      askedAt: new Date().toISOString()
     };
 
     setQuestions(prev => [newQuestion, ...prev]);
@@ -68,24 +69,18 @@ export function ProposalDashboard({ proposalData }: ProposalDashboardProps) {
     });
   };
 
-  const handleReplyToQuestion = (questionId: string, reply: string) => {
-    setQuestions(prev => prev.map(q => {
-      if (q.id === questionId) {
-        const newReply: QuestionReply = {
-          id: `r${Date.now()}`,
-          message: reply,
-          author: 'You',
-          timestamp: new Date().toISOString(),
-          isFromTeam: false
-        };
-        
-        return {
-          ...q,
-          replies: [...(q.replies || []), newReply]
-        };
-      }
-      return q;
-    }));
+  const handleAnswerQuestion = (questionId: string, answer: string) => {
+    setQuestions(prev => prev.map(q => 
+      q.id === questionId 
+        ? { 
+            ...q, 
+            answer, 
+            status: 'answered' as const,
+            answeredBy: 'Shahar Zlochover',
+            answeredAt: new Date().toISOString()
+          }
+        : q
+    ));
   };
 
   const handleApplySuggestion = (suggestionId: string) => {
@@ -133,11 +128,9 @@ export function ProposalDashboard({ proposalData }: ProposalDashboardProps) {
         <div className="container mx-auto px-6 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
-              <img 
-                src="/pinncle_log_tm.png" 
-                alt="Pinnacle Live" 
-                className="h-12 w-40 object-contain"
-              />
+              <div className="text-2xl font-bold bg-gradient-primary bg-clip-text text-transparent">
+                Pinnacle Live
+              </div>
               <Badge variant="secondary" className="font-medium">
                 Proposal Portal
               </Badge>
@@ -152,7 +145,28 @@ export function ProposalDashboard({ proposalData }: ProposalDashboardProps) {
                 <Settings className="h-4 w-4 mr-2" />
                 Settings
               </Button>
-              
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={() => window.open('/admin', '_blank')}
+                className="hover:bg-secondary"
+              >
+                <Settings className="h-4 w-4 mr-2" />
+                Admin Dashboard
+              </Button>
+              <Button 
+                variant="default"
+                size="sm"
+                className="bg-gradient-primary hover:opacity-90"
+              >
+                <HelpCircle className="h-4 w-4 mr-2" />
+                Equipment Q&A
+                {questions.filter(q => q.status === 'pending').length > 0 && (
+                  <Badge className="ml-2 h-5 w-5 p-0 text-xs bg-warning text-warning-foreground">
+                    {questions.filter(q => q.status === 'pending').length}
+                  </Badge>
+                )}
+              </Button>
             </div>
           </div>
         </div>
@@ -253,7 +267,7 @@ export function ProposalDashboard({ proposalData }: ProposalDashboardProps) {
             <TabsContent value="questions" className="mt-8">
               <QuestionsPanel 
                 questions={questions}
-                onReplyToQuestion={handleReplyToQuestion}
+                onAnswerQuestion={handleAnswerQuestion}
               />
             </TabsContent>
 
@@ -278,9 +292,6 @@ export function ProposalDashboard({ proposalData }: ProposalDashboardProps) {
         sectionName={selectedItem?.sectionName}
         onSubmitQuestion={handleSubmitQuestion}
       />
-
-      {/* Professional Footer */}
-      <Footer />
     </div>
   );
 }

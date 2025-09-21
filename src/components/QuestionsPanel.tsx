@@ -1,18 +1,19 @@
+// src/components/QuestionsPanel.tsx
 import { useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { HelpCircle, MessageSquare, Clock, CheckCircle, Filter } from "lucide-react";
+import { HelpCircle, MessageSquare, Clock, CheckCircle } from "lucide-react";
 import { EquipmentQuestion, EquipmentQuestionData } from "./EquipmentQuestion";
 import { toast } from "@/hooks/use-toast";
 
 interface QuestionsPanelProps {
   questions: EquipmentQuestionData[];
-  onReplyToQuestion: (questionId: string, reply: string) => void;
+  onAnswerQuestion: (questionId: string, answer: string) => void;
 }
 
-export function QuestionsPanel({ questions, onReplyToQuestion }: QuestionsPanelProps) {
+export function QuestionsPanel({ questions, onAnswerQuestion }: QuestionsPanelProps) {
   const [filter, setFilter] = useState<'all' | 'pending' | 'answered'>('all');
 
   const filteredQuestions = questions.filter(q => {
@@ -23,11 +24,11 @@ export function QuestionsPanel({ questions, onReplyToQuestion }: QuestionsPanelP
   const pendingCount = questions.filter(q => q.status === 'pending').length;
   const answeredCount = questions.filter(q => q.status === 'answered').length;
 
-  const handleReplyToQuestion = (questionId: string, reply: string) => {
-    onReplyToQuestion(questionId, reply);
+  const handleAnswerQuestion = (questionId: string, answer: string) => {
+    onAnswerQuestion(questionId, answer);
     toast({
-      title: "Reply Sent",
-      description: "Your reply has been added to the conversation.",
+      title: "Answer Submitted",
+      description: "Your answer has been sent to the client.",
     });
   };
 
@@ -48,9 +49,9 @@ export function QuestionsPanel({ questions, onReplyToQuestion }: QuestionsPanelP
             <HelpCircle className="h-6 w-6 text-primary" />
           </div>
           <div>
-            <h2 className="text-2xl font-bold text-foreground">Equipment Q&A</h2>
+            <h2 className="text-2xl font-bold text-foreground">Equipment Questions</h2>
             <p className="text-sm text-muted-foreground">
-              Client questions and team responses about specific equipment
+              Client questions about specific equipment and services
             </p>
           </div>
         </div>
@@ -79,7 +80,7 @@ export function QuestionsPanel({ questions, onReplyToQuestion }: QuestionsPanelP
                     <div className="flex items-center gap-2 mb-4">
                       <h3 className="text-lg font-semibold text-foreground">{sectionName}</h3>
                       <Badge variant="secondary" className="text-xs">
-                        {sectionQuestions.length} conversation{sectionQuestions.length !== 1 ? 's' : ''}
+                        {sectionQuestions.length} questions
                       </Badge>
                     </div>
                     <div className="space-y-4">
@@ -87,7 +88,7 @@ export function QuestionsPanel({ questions, onReplyToQuestion }: QuestionsPanelP
                         <EquipmentQuestion
                           key={question.id}
                           question={question}
-                          onReply={handleReplyToQuestion}
+                          onAnswer={handleAnswerQuestion}
                         />
                       ))}
                     </div>
