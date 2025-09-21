@@ -1,4 +1,4 @@
-// src/pages/SecureProposal.tsx (create this new file)
+// src/pages/SecureProposal.tsx
 import { useParams, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { ProposalDashboard } from "@/components/ProposalDashboard";
@@ -27,12 +27,16 @@ const SecureProposal = () => {
 
   const validateAndLoadProposal = async () => {
     try {
+      console.log("Validating token:", token); // Debug log
+      
       const response = await fetch(`http://localhost:8000/api/v1/secure-proposals/${token}`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
         }
       });
+
+      console.log("Response status:", response.status); // Debug log
 
       if (!response.ok) {
         if (response.status === 410) {
@@ -46,17 +50,18 @@ const SecureProposal = () => {
       }
 
       const data = await response.json();
+      console.log("Received data:", data); // Debug log
       
       // Remove user and metadata from proposal data
-      const { user, access_type, link_expires, message, ...proposal } = data;
+      const { user, access_type, link_expires, access_count, message, ...proposal } = data;
       
       setProposalData(proposal as ProposalData);
       setUserInfo(user);
       setLinkExpires(link_expires);
 
     } catch (err) {
-      setError('Network error. Please check your connection and try again.');
       console.error('Secure access error:', err);
+      setError('Network error. Please check your connection and try again.');
     } finally {
       setValidating(false);
     }
