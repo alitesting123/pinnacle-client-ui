@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { ChevronDown, ChevronRight, Edit3, HelpCircle } from "lucide-react";
+import { ChevronDown, ChevronRight, HelpCircle } from "lucide-react";
 import { ProposalSection as IProposalSection } from "@/types/proposal";
 import { cn } from "@/lib/utils";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
@@ -114,26 +114,15 @@ export function ProposalSection({
                           {formatCurrency(item.subtotal)}
                         </td>
                         <td className="p-4 text-center">
-                          <div className="flex items-center justify-center gap-1">
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => onItemEdit?.(section.id, item.id)}
-                              className="hover:bg-primary-light"
-                              title="Edit item"
-                            >
-                              <Edit3 className="h-4 w-4" />
-                            </Button>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => onItemQuestion?.(section.id, item.id)}
-                              className="hover:bg-warning/20"
-                              title="Ask question about this item"
-                            >
-                              <HelpCircle className="h-4 w-4 text-warning" />
-                            </Button>
-                          </div>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => onItemQuestion?.(section.id, item.id)}
+                            className="hover:bg-warning/20"
+                            title="Ask question about this item"
+                          >
+                            <HelpCircle className="h-4 w-4 text-warning" />
+                          </Button>
                         </td>
                       </tr>
                     ))}

@@ -164,64 +164,7 @@ const Index = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* API Status Banner */}
-      <div className="border-b border-border bg-muted/30">
-        <div className="container mx-auto px-6 py-2">
-          <div className="flex items-center justify-between text-sm">
-            <div className="flex items-center gap-3">
-              <div className="flex items-center gap-2">
-                {isCheckingHealth ? (
-                  <Loader2 className="h-3 w-3 animate-spin text-muted-foreground" />
-                ) : healthStatus === 'healthy' ? (
-                  <CheckCircle className="h-3 w-3 text-success" />
-                ) : (
-                  <AlertCircle className="h-3 w-3 text-warning" />
-                )}
-                <span className="text-muted-foreground">
-                  API Status: {isCheckingHealth ? 'Checking...' : healthStatus || 'Unknown'}
-                </span>
-              </div>
-              
-              {user && (
-                <div className="flex items-center gap-2">
-                  <span className="text-muted-foreground">Connected as:</span>
-                  <Badge variant="secondary">{user.full_name}</Badge>
-                  {user.roles.includes('admin') && (
-                    <Badge variant="outline" className="text-xs">Admin</Badge>
-                  )}
-                </div>
-              )}
-              
-              <Badge variant="outline" className="text-xs text-success">
-                Live Data from API
-              </Badge>
-            </div>
-            
-            <div className="flex items-center gap-2">
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => window.open('http://localhost:8000/docs', '_blank')}
-                className="h-6 text-xs"
-              >
-                API Docs
-              </Button>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => {
-                  refetch();
-                  fetchProposalData();
-                }}
-                className="h-6 text-xs"
-              >
-                <RefreshCw className="h-3 w-3 mr-1" />
-                Refresh
-              </Button>
-            </div>
-          </div>
-        </div>
-      </div>
+   
 
       {/* Main Application */}
       <ProposalDashboard proposalData={proposalData} />
