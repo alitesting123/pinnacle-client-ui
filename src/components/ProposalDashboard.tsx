@@ -25,6 +25,9 @@ export function ProposalDashboard({ proposalData }: ProposalDashboardProps) {
   const [isQuestionModalOpen, setIsQuestionModalOpen] = useState(false);
   const [selectedItem, setSelectedItem] = useState<{ item: ProposalItem; sectionName: string } | null>(null);
 
+  // Get proposal ID from event details
+  const proposalId = proposalData.eventDetails.jobNumber || 'default';
+
   const handleSectionToggle = (sectionId: string) => {
     setSections(prev => prev.map(section => 
       section.id === sectionId 
@@ -97,29 +100,6 @@ export function ProposalDashboard({ proposalData }: ProposalDashboardProps) {
   const collapseAllSections = () => {
     setSections(prev => prev.map(section => ({ ...section, isExpanded: false })));
   };
-
-  const mockSuggestions = [
-    {
-      id: 'lighting-optimization',
-      type: 'cost-optimization' as const,
-      title: 'LED Lighting Bundle Optimization',
-      description: 'Replace 24 individual LED Par Cans with 6 high-output LED bars for better coverage and reduced setup time.',
-      originalCost: 6120,
-      suggestedCost: 4800,
-      savings: 1320,
-      confidence: 'high' as const
-    },
-    {
-      id: 'audio-upgrade',
-      type: 'upgrade' as const,
-      title: 'Premium Audio Package',
-      description: 'Upgrade to line array system with digital processing for enhanced clarity and coverage.',
-      originalCost: 18750,
-      suggestedCost: 22500,
-      savings: -3750,
-      confidence: 'medium' as const
-    }
-  ];
 
   return (
     <div className="min-h-screen bg-background">
@@ -194,7 +174,7 @@ export function ProposalDashboard({ proposalData }: ProposalDashboardProps) {
               </TabsTrigger>
               <TabsTrigger value="questions" className="flex items-center gap-2 relative">
                 <HelpCircle className="h-4 w-4" />
-                Questions & Answers
+                Requests
                 {questions.filter(q => q.status === 'pending').length > 0 && (
                   <Badge className="absolute -top-2 -right-2 h-5 w-5 p-0 text-xs bg-warning text-warning-foreground">
                     {questions.filter(q => q.status === 'pending').length}
@@ -203,7 +183,7 @@ export function ProposalDashboard({ proposalData }: ProposalDashboardProps) {
               </TabsTrigger>
               <TabsTrigger value="suggestions" className="flex items-center gap-2">
                 <Lightbulb className="h-4 w-4" />
-                Suggestions
+                Sale's suggestion
               </TabsTrigger>
             </TabsList>
 
@@ -273,7 +253,7 @@ export function ProposalDashboard({ proposalData }: ProposalDashboardProps) {
 
             <TabsContent value="suggestions" className="mt-8">
               <SuggestionPanel 
-                suggestions={mockSuggestions}
+                proposalId={proposalId}
                 onApplySuggestion={handleApplySuggestion}
               />
             </TabsContent>
