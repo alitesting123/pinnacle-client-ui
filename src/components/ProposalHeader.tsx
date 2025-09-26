@@ -32,11 +32,12 @@ export function ProposalHeader({ eventDetails, totalCost }: ProposalHeaderProps)
       <div className="relative">
         {/* Background Image - Visible at top */}
         <div 
-          className="absolute inset-0 bg-cover bg-center bg-no-repeat"
+          className="absolute inset-0 bg-cover bg-left bg-no-repeat"
           style={{
-            backgroundImage: `url('https://images.unsplash.com/photo-1540575467063-178a50c2df87?ixlib=rb-4.0.3&auto=format&fit=crop&w=2070&q=80')`
+               backgroundImage: `url('/unsplash.jpg')`
           }}
         />
+        https://unsplash.com/photos/city-skyline-during-night-time-BHFP2Ty52yw
         
         {/* Gradient Overlay - Transparent at top, opaque at bottom */}
         <div className="absolute inset-0 bg-gradient-to-b from-transparent via-background/20 to-background"></div>

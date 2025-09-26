@@ -67,7 +67,7 @@ export function QuestionModal({
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="question">Your Question</Label>
+              <Label htmlFor="question">Ask the sales</Label>
               <Textarea
                 id="question"
                 placeholder="Ask about specifications, alternatives, setup requirements, compatibility, or any other details about this equipment..."
@@ -91,7 +91,7 @@ export function QuestionModal({
                 className="bg-gradient-primary hover:opacity-90"
               >
                 <Send className="h-4 w-4 mr-2" />
-                Submit Question
+                Submit Request
               </Button>
             </div>
           </div>

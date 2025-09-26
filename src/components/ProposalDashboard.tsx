@@ -29,8 +29,8 @@ export function ProposalDashboard({ proposalData }: ProposalDashboardProps) {
   const proposalId = proposalData.eventDetails.jobNumber || 'default';
 
   const handleSectionToggle = (sectionId: string) => {
-    setSections(prev => prev.map(section => 
-      section.id === sectionId 
+    setSections(prev => prev.map(section =>
+      section.id === sectionId
         ? { ...section, isExpanded: !section.isExpanded }
         : section
     ));
@@ -46,7 +46,7 @@ export function ProposalDashboard({ proposalData }: ProposalDashboardProps) {
   const handleItemQuestion = (sectionId: string, itemId: string) => {
     const section = sections.find(s => s.id === sectionId);
     const item = section?.items.find(i => i.id === itemId);
-    
+
     if (item && section) {
       setSelectedItem({ item, sectionName: section.title });
       setIsQuestionModalOpen(true);
@@ -73,15 +73,15 @@ export function ProposalDashboard({ proposalData }: ProposalDashboardProps) {
   };
 
   const handleAnswerQuestion = (questionId: string, answer: string) => {
-    setQuestions(prev => prev.map(q => 
-      q.id === questionId 
-        ? { 
-            ...q, 
-            answer, 
-            status: 'answered' as const,
-            answeredBy: 'Shahar Zlochover',
-            answeredAt: new Date().toISOString()
-          }
+    setQuestions(prev => prev.map(q =>
+      q.id === questionId
+        ? {
+          ...q,
+          answer,
+          status: 'answered' as const,
+          answeredBy: 'Shahar Zlochover',
+          answeredAt: new Date().toISOString()
+        }
         : q
     ));
   };
@@ -105,59 +105,58 @@ export function ProposalDashboard({ proposalData }: ProposalDashboardProps) {
     <div className="min-h-screen bg-background">
       {/* Header */}
       <div className="sticky top-0 z-40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b border-border">
-        <div className="container mx-auto px-6 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <div className="text-2xl font-bold bg-gradient-primary bg-clip-text text-transparent">
-                Pinnacle Live
-              </div>
-              <Badge variant="secondary" className="font-medium">
-                Proposal Portal
-              </Badge>
-            </div>
-            
-            <div className="flex items-center gap-3">
-              <Button variant="outline" size="sm" className="hover:bg-secondary">
-                <Share2 className="h-4 w-4 mr-2" />
-                Share
-              </Button>
-              <Button variant="outline" size="sm" className="hover:bg-secondary">
-                <Settings className="h-4 w-4 mr-2" />
-                Settings
-              </Button>
-              <Button 
-                variant="outline" 
-                size="sm" 
-                onClick={() => window.open('/admin', '_blank')}
-                className="hover:bg-secondary"
-              >
-                <Settings className="h-4 w-4 mr-2" />
-                Admin Dashboard
-              </Button>
-              <Button 
-                variant="default"
-                size="sm"
-                className="bg-gradient-primary hover:opacity-90"
-              >
-                <HelpCircle className="h-4 w-4 mr-2" />
-                Equipment Q&A
-                {questions.filter(q => q.status === 'pending').length > 0 && (
-                  <Badge className="ml-2 h-5 w-5 p-0 text-xs bg-warning text-warning-foreground">
-                    {questions.filter(q => q.status === 'pending').length}
-                  </Badge>
-                )}
-              </Button>
-            </div>
-          </div>
+  <div className="container mx-auto px-6 py-4">
+    <div className="flex items-center justify-between">
+      <div className="flex items-center gap-4">
+        <div className="flex items-baseline gap-2">
+          <span 
+            className="text-2xl font-light tracking-tight"
+            style={{ 
+              color: '#1a1a1a',
+              fontFamily: 'Inter, system-ui, sans-serif'
+            }}
+          >
+            pinnacle
+          </span>
+          <div 
+            className="w-0.5 h-6"
+            style={{ backgroundColor: '#B8860B' }}
+          />
+          <span 
+            className="text-lg font-normal tracking-wider uppercase"
+            style={{ 
+              color: '#B8860B',
+              fontFamily: 'Inter, system-ui, sans-serif'
+            }}
+          >
+            live<sup className="text-xs">™</sup>
+          </span>
         </div>
+        <Badge variant="secondary" className="font-medium">
+          Proposal Portal
+        </Badge>
       </div>
+
+      <div className="flex items-center gap-3">
+        <Button variant="outline" size="sm" className="hover:bg-secondary">
+          <Share2 className="h-4 w-4 mr-2" />
+          Share
+        </Button>
+        <Button variant="outline" size="sm" className="hover:bg-secondary">
+          <Settings className="h-4 w-4 mr-2" />
+          Settings
+        </Button>
+      </div>
+    </div>
+  </div>
+</div>
 
       {/* Main Content */}
       <div className="container mx-auto px-6 py-8">
         <div className="space-y-8">
           {/* Proposal Header */}
-          <ProposalHeader 
-            eventDetails={proposalData.eventDetails} 
+          <ProposalHeader
+            eventDetails={proposalData.eventDetails}
             totalCost={proposalData.totalCost}
           />
 
@@ -176,7 +175,7 @@ export function ProposalDashboard({ proposalData }: ProposalDashboardProps) {
                 <HelpCircle className="h-4 w-4" />
                 Requests
                 {questions.filter(q => q.status === 'pending').length > 0 && (
-                  <Badge className="absolute -top-2 -right-2 h-5 w-5 p-0 text-xs bg-warning text-warning-foreground">
+                  <Badge className="absolute -top-2 -right-2 h-5 w-5 p-0 text-xs bg-warning text-warning-foreground flex items-center justify-center min-w-[1.25rem]">
                     {questions.filter(q => q.status === 'pending').length}
                   </Badge>
                 )}
@@ -245,14 +244,14 @@ export function ProposalDashboard({ proposalData }: ProposalDashboardProps) {
             </TabsContent>
 
             <TabsContent value="questions" className="mt-8">
-              <QuestionsPanel 
+              <QuestionsPanel
                 questions={questions}
                 onAnswerQuestion={handleAnswerQuestion}
               />
             </TabsContent>
 
             <TabsContent value="suggestions" className="mt-8">
-              <SuggestionPanel 
+              <SuggestionPanel
                 proposalId={proposalId}
                 onApplySuggestion={handleApplySuggestion}
               />
