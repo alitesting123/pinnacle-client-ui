@@ -8,6 +8,7 @@ import Index from "./pages/Index";
 import SecureProposal from "./pages/SecureProposal";
 import AdminDashboard from "./pages/AdminDashboard";
 import NotFound from "./pages/NotFound";
+import TempAccess from "./pages/TempAccess";
 
 const queryClient = new QueryClient();
 
@@ -21,6 +22,9 @@ const App = () => (
           <Route path="/" element={<Index />} />
           <Route path="/admin" element={<AdminDashboard />} />
           <Route path="/secure/:token" element={<SecureProposal />} />
+       
+          <Route path="/temp-access" element={<TempAccess />} />
+          
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
