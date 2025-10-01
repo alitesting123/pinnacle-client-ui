@@ -3,13 +3,14 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { HelpCircle, Calendar, Lightbulb, FileText, Settings, Share2 } from "lucide-react";
+import { HelpCircle, Calendar, Lightbulb, FileText, Settings, Share2, CheckCircle } from "lucide-react";
 import { ProposalHeader } from "./ProposalHeader";
 import { ProposalSection } from "./ProposalSection";
 import { TimelineView } from "./TimelineView";
 import { QuestionsPanel } from "./QuestionsPanel";
 import { SuggestionPanel } from "./SuggestionPanel";
 import { QuestionModal } from "./QuestionModal";
+import { SignatureModal } from "./SignatureModal";
 import { ProposalData, ProposalItem } from "@/types/proposal";
 import { EquipmentQuestionData } from "./EquipmentQuestion";
 import { mockQuestions } from "@/data/mockQuestions";
@@ -19,11 +20,17 @@ interface ProposalDashboardProps {
   proposalData: ProposalData;
 }
 
-export function ProposalDashboard({ proposalData }: ProposalDashboardProps) {
+export function ProposalDashboard({ proposalData: initialProposalData }: ProposalDashboardProps) {
+  const [proposalData, setProposalData] = useState(initialProposalData);
   const [sections, setSections] = useState(proposalData.sections);
   const [questions, setQuestions] = useState<EquipmentQuestionData[]>(mockQuestions);
   const [isQuestionModalOpen, setIsQuestionModalOpen] = useState(false);
+  const [isSignatureModalOpen, setIsSignatureModalOpen] = useState(false);
   const [selectedItem, setSelectedItem] = useState<{ item: ProposalItem; sectionName: string } | null>(null);
+  const [signatureInfo, setSignatureInfo] = useState<{
+    signature: string;
+    date: string;
+  } | null>(null);
 
   // Get proposal ID from event details
   const proposalId = proposalData.eventDetails.jobNumber || 'default';
@@ -93,6 +100,27 @@ export function ProposalDashboard({ proposalData }: ProposalDashboardProps) {
     });
   };
 
+  const handleSignProposal = (signature: string, date: string) => {
+    setSignatureInfo({ signature, date });
+    
+    // Update proposal status to confirmed
+    setProposalData(prev => ({
+      ...prev,
+      eventDetails: {
+        ...prev.eventDetails,
+        status: 'confirmed'
+      }
+    }));
+
+    setIsSignatureModalOpen(false);
+    
+    toast({
+      title: "Proposal Signed Successfully",
+      description: `${signature} signed on ${new Date(date).toLocaleDateString()}. Status updated to Confirmed.`,
+      duration: 5000,
+    });
+  };
+
   const expandAllSections = () => {
     setSections(prev => prev.map(section => ({ ...section, isExpanded: true })));
   };
@@ -100,6 +128,8 @@ export function ProposalDashboard({ proposalData }: ProposalDashboardProps) {
   const collapseAllSections = () => {
     setSections(prev => prev.map(section => ({ ...section, isExpanded: false })));
   };
+
+  const isProposalSigned = proposalData.eventDetails.status === 'confirmed' || proposalData.eventDetails.status === 'completed';
 
   return (
     <div className="min-h-screen bg-background">
@@ -135,45 +165,60 @@ export function ProposalDashboard({ proposalData }: ProposalDashboardProps) {
               <Badge variant="secondary" className="font-medium">
                 Proposal Portal
               </Badge>
+              {isProposalSigned && (
+                <Badge className="bg-success text-success-foreground">
+                  <CheckCircle className="h-3 w-3 mr-1" />
+                  Signed
+                </Badge>
+              )}
             </div>
+
             <div className="flex items-center gap-3">
-              <Button
-                variant="outline"
-                size="sm"
-                className="group relative border-2 border-dashed border-gray-300 hover:border-amber-400 hover:bg-amber-50/50 transition-all duration-300 px-6 py-3 rounded-lg"
-              >
-                <div className="flex items-center gap-3">
-                  {/* Pen icon */}
-                  <svg
-                    className="h-5 w-5 text-gray-500 group-hover:text-amber-600 transition-colors"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="1.5"
-                  >
-                    <path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z" />
-                    <path d="m15 5 4 4" />
-                  </svg>
-
-                  <div className="text-left">
-                    <div
-                      className="text-sm font-medium text-gray-700 group-hover:text-amber-800 transition-colors leading-tight"
+              {!isProposalSigned ? (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setIsSignatureModalOpen(true)}
+                  className="group relative border-2 border-dashed border-gray-300 hover:border-amber-400 hover:bg-amber-50/50 transition-all duration-300 px-6 py-3 rounded-lg"
+                >
+                  <div className="flex items-center gap-3">
+                    <svg
+                      className="h-5 w-5 text-gray-500 group-hover:text-amber-600 transition-colors"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="1.5"
                     >
-                      Sign Proposal
-                    </div>
-                    <div className="text-xs text-gray-500 group-hover:text-amber-600 transition-colors">
-                      Digital signature
-                    </div>
-                  </div>
-                </div>
+                      <path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z" />
+                      <path d="m15 5 4 4" />
+                    </svg>
 
-                {/* Signature line */}
-                <div className="absolute bottom-2 left-6 right-6">
-                  <div className="h-px bg-gray-300 group-hover:bg-amber-400 transition-colors"></div>
-                  <div className="text-xs text-gray-400 group-hover:text-amber-500 transition-colors mt-1 text-center">
-                    _______________
+                    <div className="text-left">
+                      <div className="text-sm font-medium text-gray-700 group-hover:text-amber-800 transition-colors leading-tight">
+                        Sign Proposal
+                      </div>
+                      <div className="text-xs text-gray-500 group-hover:text-amber-600 transition-colors">
+                        Digital signature
+                      </div>
+                    </div>
                   </div>
-                </div>
+
+                  <div className="absolute bottom-2 left-6 right-6">
+                    <div className="h-px bg-gray-300 group-hover:bg-amber-400 transition-colors"></div>
+                    <div className="text-xs text-gray-400 group-hover:text-amber-500 transition-colors mt-1 text-center">
+                      _______________
+                    </div>
+                  </div>
+                </Button>
+              ) : (
+                <Button variant="outline" size="sm" className="hover:bg-secondary">
+                  <Share2 className="h-4 w-4 mr-2" />
+                  Share
+                </Button>
+              )}
+              <Button variant="outline" size="sm" className="hover:bg-secondary">
+                <Settings className="h-4 w-4 mr-2" />
+                Settings
               </Button>
             </div>
           </div>
@@ -188,6 +233,33 @@ export function ProposalDashboard({ proposalData }: ProposalDashboardProps) {
             eventDetails={proposalData.eventDetails}
             totalCost={proposalData.totalCost}
           />
+
+          {/* Signature Info Display */}
+          {signatureInfo && (
+            <div className="bg-success/10 border border-success/20 rounded-lg p-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <CheckCircle className="h-5 w-5 text-success" />
+                  <div>
+                    <p className="font-semibold text-success">Proposal Signed</p>
+                    <p className="text-sm text-muted-foreground">
+                      Signed by <span className="font-medium">{signatureInfo.signature}</span> on{' '}
+                      {new Date(signatureInfo.date).toLocaleDateString('en-US', {
+                        year: 'numeric',
+                        month: 'long',
+                        day: 'numeric',
+                        hour: '2-digit',
+                        minute: '2-digit'
+                      })}
+                    </p>
+                  </div>
+                </div>
+                <Badge className="bg-success text-success-foreground">
+                  Status: Confirmed
+                </Badge>
+              </div>
+            </div>
+          )}
 
           {/* Main Tabs */}
           <Tabs defaultValue="proposal" className="w-full">
@@ -299,6 +371,18 @@ export function ProposalDashboard({ proposalData }: ProposalDashboardProps) {
         item={selectedItem?.item}
         sectionName={selectedItem?.sectionName}
         onSubmitQuestion={handleSubmitQuestion}
+      />
+
+      {/* Signature Modal */}
+      <SignatureModal
+        isOpen={isSignatureModalOpen}
+        onClose={() => setIsSignatureModalOpen(false)}
+        onSign={handleSignProposal}
+        proposalData={{
+          jobNumber: proposalData.eventDetails.jobNumber,
+          clientName: proposalData.eventDetails.clientName,
+          totalCost: proposalData.totalCost
+        }}
       />
     </div>
   );
