@@ -105,51 +105,80 @@ export function ProposalDashboard({ proposalData }: ProposalDashboardProps) {
     <div className="min-h-screen bg-background">
       {/* Header */}
       <div className="sticky top-0 z-40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b border-border">
-  <div className="container mx-auto px-6 py-4">
-    <div className="flex items-center justify-between">
-      <div className="flex items-center gap-4">
-        <div className="flex items-baseline gap-2">
-          <span 
-            className="text-2xl font-light tracking-tight"
-            style={{ 
-              color: '#1a1a1a',
-              fontFamily: 'Inter, system-ui, sans-serif'
-            }}
-          >
-            pinnacle
-          </span>
-          <div 
-            className="w-0.5 h-6"
-            style={{ backgroundColor: '#B8860B' }}
-          />
-          <span 
-            className="text-lg font-normal tracking-wider uppercase"
-            style={{ 
-              color: '#B8860B',
-              fontFamily: 'Inter, system-ui, sans-serif'
-            }}
-          >
-            live<sup className="text-xs">™</sup>
-          </span>
-        </div>
-        <Badge variant="secondary" className="font-medium">
-          Proposal Portal
-        </Badge>
-      </div>
+        <div className="container mx-auto px-6 py-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              <div className="flex items-baseline gap-2">
+                <span
+                  className="text-2xl font-light tracking-tight"
+                  style={{
+                    color: '#1a1a1a',
+                    fontFamily: 'Inter, system-ui, sans-serif'
+                  }}
+                >
+                  pinnacle
+                </span>
+                <div
+                  className="w-0.5 h-6"
+                  style={{ backgroundColor: '#B8860B' }}
+                />
+                <span
+                  className="text-lg font-normal tracking-wider uppercase"
+                  style={{
+                    color: '#B8860B',
+                    fontFamily: 'Inter, system-ui, sans-serif'
+                  }}
+                >
+                  live<sup className="text-xs">™</sup>
+                </span>
+              </div>
+              <Badge variant="secondary" className="font-medium">
+                Proposal Portal
+              </Badge>
+            </div>
+            <div className="flex items-center gap-3">
+              <Button
+                variant="outline"
+                size="sm"
+                className="group relative border-2 border-dashed border-gray-300 hover:border-amber-400 hover:bg-amber-50/50 transition-all duration-300 px-6 py-3 rounded-lg"
+              >
+                <div className="flex items-center gap-3">
+                  {/* Pen icon */}
+                  <svg
+                    className="h-5 w-5 text-gray-500 group-hover:text-amber-600 transition-colors"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="1.5"
+                  >
+                    <path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z" />
+                    <path d="m15 5 4 4" />
+                  </svg>
 
-      <div className="flex items-center gap-3">
-        <Button variant="outline" size="sm" className="hover:bg-secondary">
-          <Share2 className="h-4 w-4 mr-2" />
-          Share
-        </Button>
-        <Button variant="outline" size="sm" className="hover:bg-secondary">
-          <Settings className="h-4 w-4 mr-2" />
-          Settings
-        </Button>
+                  <div className="text-left">
+                    <div
+                      className="text-sm font-medium text-gray-700 group-hover:text-amber-800 transition-colors leading-tight"
+                    >
+                      Sign Proposal
+                    </div>
+                    <div className="text-xs text-gray-500 group-hover:text-amber-600 transition-colors">
+                      Digital signature
+                    </div>
+                  </div>
+                </div>
+
+                {/* Signature line */}
+                <div className="absolute bottom-2 left-6 right-6">
+                  <div className="h-px bg-gray-300 group-hover:bg-amber-400 transition-colors"></div>
+                  <div className="text-xs text-gray-400 group-hover:text-amber-500 transition-colors mt-1 text-center">
+                    _______________
+                  </div>
+                </div>
+              </Button>
+            </div>
+          </div>
+        </div>
       </div>
-    </div>
-  </div>
-</div>
 
       {/* Main Content */}
       <div className="container mx-auto px-6 py-8">
