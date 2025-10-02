@@ -17,51 +17,61 @@ const Index = () => {
   const [isCheckingHealth, setIsCheckingHealth] = useState(false);
 
   // Fetch proposal data
-  const fetchProposalData = async () => {
-    setProposalLoading(true);
-    setProposalError(null);
+// Fetch proposal data
+const fetchProposalData = async () => {
+  setProposalLoading(true);
+  setProposalError(null);
+  
+  try {
+    // Get proposals list first
+    const proposals = await apiService.getProposals();
+    console.log('Raw proposals response:', proposals);
     
-    try {
-      // Get proposals list first
-      const proposals = await apiService.getProposals();
-      console.log('Raw proposals response:', proposals); // Debug log
+    if (proposals && proposals.length > 0) {
+      console.log('First proposal structure:', proposals[0]);
       
-      if (proposals && proposals.length > 0) {
-        console.log('First proposal structure:', proposals[0]); // Debug log
-        
-        // Try multiple ways to get the proposal ID
-        let proposalId = 'default';
-        
-        if (proposals[0].eventDetails?.jobNumber) {
-          proposalId = proposals[0].eventDetails.jobNumber;
-          console.log('Using jobNumber:', proposalId);
-        } else if (proposals[0].event_details?.job_number) {
-          proposalId = proposals[0].event_details.job_number;
-          console.log('Using job_number:', proposalId);
-        } else {
-          console.log('No job number found, using default');
-        }
-        
-        const detailedProposal = await apiService.getProposal(proposalId);
-        console.log('Detailed proposal response:', detailedProposal); // Debug log
-        
-        if (detailedProposal) {
-          setProposalData(detailedProposal);
-        } else {
-          throw new Error('Failed to load proposal details');
-        }
-      } else {
-        throw new Error('No proposals found');
+      // Try multiple ways to get the proposal ID
+      let proposalId: string | null = null;
+      
+      // Check different possible property names
+      if (proposals[0].eventDetails?.jobNumber) {
+        proposalId = proposals[0].eventDetails.jobNumber;
+        console.log('Using jobNumber:', proposalId);
+      } else if (proposals[0].event_details?.job_number) {
+        proposalId = proposals[0].event_details.job_number;
+        console.log('Using job_number:', proposalId);
+      } else if (proposals[0].job_number) {
+        proposalId = proposals[0].job_number;
+        console.log('Using direct job_number:', proposalId);
+      } else if (proposals[0].id) {
+        proposalId = proposals[0].id;
+        console.log('Using id:', proposalId);
       }
-    } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Failed to load proposal data';
-      setProposalError(errorMessage);
-      console.error('Failed to fetch proposal data:', error);
-    } finally {
-      setProposalLoading(false);
+      
+      // If we still don't have a valid ID, throw an error
+      if (!proposalId) {
+        throw new Error('No valid proposal ID found in response. Check backend data structure.');
+      }
+      
+      const detailedProposal = await apiService.getProposal(proposalId);
+      console.log('Detailed proposal response:', detailedProposal);
+      
+      if (detailedProposal) {
+        setProposalData(detailedProposal);
+      } else {
+        throw new Error('Failed to load proposal details');
+      }
+    } else {
+      throw new Error('No proposals found in database');
     }
-  };
-
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : 'Failed to load proposal data';
+    setProposalError(errorMessage);
+    console.error('Failed to fetch proposal data:', error);
+  } finally {
+    setProposalLoading(false);
+  }
+};
   // Check API health
   const checkApiHealth = async () => {
     setIsCheckingHealth(true);

@@ -1,3 +1,5 @@
+// src/types/proposal.ts
+
 export interface ProposalItem {
   id: string;
   quantity: number;
@@ -38,6 +40,9 @@ export interface ProposalData {
   sections: ProposalSection[];
   totalCost: number;
   timeline: TimelineEvent[];
+  pricing?: {
+    totalCost: number;
+  };
 }
 
 export interface TimelineEvent {
@@ -72,11 +77,25 @@ export interface Suggestion {
   confidence: 'low' | 'medium' | 'high';
 }
 
-// New interface for question replies
 export interface QuestionReply {
   id: string;
   message: string;
   author: string;
   timestamp: string;
   isFromTeam: boolean;
+}
+
+export interface EquipmentQuestionData {
+  id: string;
+  itemId: string;
+  itemName: string;
+  sectionName: string;
+  question: string;
+  answer?: string;
+  status: 'pending' | 'answered';
+  askedBy: string;
+  askedAt: string;
+  answeredBy?: string;
+  answeredAt?: string;
+  replies?: QuestionReply[];
 }

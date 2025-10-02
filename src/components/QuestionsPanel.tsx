@@ -1,16 +1,15 @@
 // src/components/QuestionsPanel.tsx
 import { useState } from "react";
 import { Card } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { HelpCircle, MessageSquare, Clock, CheckCircle } from "lucide-react";
-import { EquipmentQuestion, EquipmentQuestionData } from "./EquipmentQuestion";
-import { toast } from "@/hooks/use-toast";
+import { EquipmentQuestion } from "./EquipmentQuestion";
+import { EquipmentQuestionData } from "@/types/proposal";
 
 interface QuestionsPanelProps {
   questions: EquipmentQuestionData[];
-  onAnswerQuestion: (questionId: string, answer: string) => void;
+  onAnswerQuestion: (questionId: string, answer: string) => Promise<void>;
 }
 
 export function QuestionsPanel({ questions, onAnswerQuestion }: QuestionsPanelProps) {
@@ -24,12 +23,9 @@ export function QuestionsPanel({ questions, onAnswerQuestion }: QuestionsPanelPr
   const pendingCount = questions.filter(q => q.status === 'pending').length;
   const answeredCount = questions.filter(q => q.status === 'answered').length;
 
-  const handleAnswerQuestion = (questionId: string, answer: string) => {
-    onAnswerQuestion(questionId, answer);
-    toast({
-      title: "Answer Submitted",
-      description: "Your answer has been sent to the client.",
-    });
+  const handleAnswerQuestion = async (questionId: string, answer: string) => {
+    await onAnswerQuestion(questionId, answer);
+    // Toast is now handled in ProposalDashboard
   };
 
   const groupedQuestions = filteredQuestions.reduce((acc, question) => {

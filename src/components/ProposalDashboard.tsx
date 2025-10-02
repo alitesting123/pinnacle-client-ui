@@ -1,9 +1,10 @@
 // src/components/ProposalDashboard.tsx
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Card } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { HelpCircle, Calendar, Lightbulb, FileText, Settings, Share2, CheckCircle } from "lucide-react";
+import { HelpCircle, Calendar, Lightbulb, FileText, Settings, Share2, CheckCircle, Loader2, AlertCircle } from "lucide-react";
 import { ProposalHeader } from "./ProposalHeader";
 import { ProposalSection } from "./ProposalSection";
 import { TimelineView } from "./TimelineView";
@@ -11,9 +12,7 @@ import { QuestionsPanel } from "./QuestionsPanel";
 import { SuggestionPanel } from "./SuggestionPanel";
 import { QuestionModal } from "./QuestionModal";
 import { SignatureModal } from "./SignatureModal";
-import { ProposalData, ProposalItem } from "@/types/proposal";
-import { EquipmentQuestionData } from "./EquipmentQuestion";
-import { mockQuestions } from "@/data/mockQuestions";
+import { ProposalData, ProposalItem, EquipmentQuestionData } from "@/types/proposal";
 import { toast } from "@/hooks/use-toast";
 
 interface ProposalDashboardProps {
@@ -23,7 +22,9 @@ interface ProposalDashboardProps {
 export function ProposalDashboard({ proposalData: initialProposalData }: ProposalDashboardProps) {
   const [proposalData, setProposalData] = useState(initialProposalData);
   const [sections, setSections] = useState(proposalData.sections);
-  const [questions, setQuestions] = useState<EquipmentQuestionData[]>(mockQuestions);
+  const [questions, setQuestions] = useState<EquipmentQuestionData[]>([]);
+  const [questionsLoading, setQuestionsLoading] = useState(true);
+  const [questionsError, setQuestionsError] = useState<string | null>(null);
   const [isQuestionModalOpen, setIsQuestionModalOpen] = useState(false);
   const [isSignatureModalOpen, setIsSignatureModalOpen] = useState(false);
   const [selectedItem, setSelectedItem] = useState<{ item: ProposalItem; sectionName: string } | null>(null);
@@ -34,6 +35,36 @@ export function ProposalDashboard({ proposalData: initialProposalData }: Proposa
 
   // Get proposal ID from event details
   const proposalId = proposalData.eventDetails.jobNumber || 'default';
+
+  // Calculate total cost - handle both API response formats
+  const totalCost = proposalData.pricing?.totalCost ?? proposalData.totalCost ?? 0;
+
+  // Fetch questions from API on mount
+  useEffect(() => {
+    const fetchQuestions = async () => {
+      setQuestionsLoading(true);
+      setQuestionsError(null);
+      
+      try {
+        const response = await fetch(`/api/v1/proposals/${proposalId}/questions`);
+        
+        if (!response.ok) {
+          throw new Error('Failed to fetch questions');
+        }
+        
+        const data = await response.json();
+        setQuestions(data.questions || []);
+      } catch (error) {
+        console.error('Failed to fetch questions:', error);
+        setQuestionsError(error instanceof Error ? error.message : 'Failed to load questions');
+        // Don't show error toast on mount - just log it
+      } finally {
+        setQuestionsLoading(false);
+      }
+    };
+
+    fetchQuestions();
+  }, [proposalId]);
 
   const handleSectionToggle = (sectionId: string) => {
     setSections(prev => prev.map(section =>
@@ -60,37 +91,79 @@ export function ProposalDashboard({ proposalData: initialProposalData }: Proposa
     }
   };
 
-  const handleSubmitQuestion = (question: string, itemId: string, itemName: string, sectionName: string) => {
-    const newQuestion: EquipmentQuestionData = {
-      id: `q${Date.now()}`,
-      itemId,
-      itemName,
-      sectionName,
-      question,
-      status: 'pending',
-      askedBy: 'You',
-      askedAt: new Date().toISOString()
-    };
+  const handleSubmitQuestion = async (question: string, itemId: string, itemName: string, sectionName: string) => {
+    try {
+      const response = await fetch(`/api/v1/proposals/${proposalId}/questions`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          item_id: itemId,
+          item_name: itemName,
+          section_name: sectionName,
+          question: question,
+        }),
+      });
 
-    setQuestions(prev => [newQuestion, ...prev]);
-    toast({
-      title: "Question Submitted",
-      description: `Your question about "${itemName}" has been sent to the Pinnacle Live team.`,
-    });
+      if (!response.ok) {
+        throw new Error('Failed to submit question');
+      }
+
+      const newQuestion = await response.json();
+      
+      // Add new question to the list
+      setQuestions(prev => [newQuestion, ...prev]);
+      
+      toast({
+        title: "Question Submitted",
+        description: `Your question about "${itemName}" has been sent to the Pinnacle Live team.`,
+      });
+    } catch (error) {
+      console.error('Failed to submit question:', error);
+      toast({
+        title: "Error",
+        description: "Failed to submit question. Please try again.",
+        variant: "destructive",
+      });
+    }
   };
 
-  const handleAnswerQuestion = (questionId: string, answer: string) => {
-    setQuestions(prev => prev.map(q =>
-      q.id === questionId
-        ? {
-          ...q,
-          answer,
-          status: 'answered' as const,
-          answeredBy: 'Shahar Zlochover',
-          answeredAt: new Date().toISOString()
-        }
-        : q
-    ));
+  const handleAnswerQuestion = async (questionId: string, answer: string) => {
+    try {
+      const response = await fetch(`/api/v1/questions/${questionId}/answer`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          answer: answer,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to submit answer');
+      }
+
+      const updatedQuestion = await response.json();
+      
+      // Update the question in the list
+      setQuestions(prev => prev.map(q =>
+        q.id === questionId ? updatedQuestion : q
+      ));
+      
+      toast({
+        title: "Answer Submitted",
+        description: "Your answer has been sent to the client.",
+      });
+    } catch (error) {
+      console.error('Failed to submit answer:', error);
+      toast({
+        title: "Error",
+        description: "Failed to submit answer. Please try again.",
+        variant: "destructive",
+      });
+    }
   };
 
   const handleApplySuggestion = (suggestionId: string) => {
@@ -231,7 +304,7 @@ export function ProposalDashboard({ proposalData: initialProposalData }: Proposa
           {/* Proposal Header */}
           <ProposalHeader
             eventDetails={proposalData.eventDetails}
-            totalCost={proposalData.totalCost}
+            totalCost={totalCost}
           />
 
           {/* Signature Info Display */}
@@ -330,7 +403,7 @@ export function ProposalDashboard({ proposalData: initialProposalData }: Proposa
                   </div>
                   <div className="text-right">
                     <p className="text-4xl font-bold text-primary">
-                      ${proposalData.totalCost.toLocaleString()}
+                      ${totalCost.toLocaleString()}
                     </p>
                     <p className="text-sm text-muted-foreground">
                       {sections.reduce((total, section) => total + section.items.length, 0)} line items
@@ -345,10 +418,23 @@ export function ProposalDashboard({ proposalData: initialProposalData }: Proposa
             </TabsContent>
 
             <TabsContent value="questions" className="mt-8">
-              <QuestionsPanel
-                questions={questions}
-                onAnswerQuestion={handleAnswerQuestion}
-              />
+              {questionsLoading ? (
+                <Card className="border-card-border shadow-md p-12 text-center">
+                  <Loader2 className="h-8 w-8 animate-spin mx-auto text-primary mb-4" />
+                  <p className="text-muted-foreground">Loading questions...</p>
+                </Card>
+              ) : questionsError ? (
+                <Card className="border-card-border shadow-md p-12 text-center">
+                  <AlertCircle className="h-8 w-8 mx-auto text-destructive mb-4" />
+                  <p className="text-foreground font-semibold mb-2">Failed to Load Questions</p>
+                  <p className="text-muted-foreground text-sm">{questionsError}</p>
+                </Card>
+              ) : (
+                <QuestionsPanel
+                  questions={questions}
+                  onAnswerQuestion={handleAnswerQuestion}
+                />
+              )}
             </TabsContent>
 
             <TabsContent value="suggestions" className="mt-8">
@@ -381,7 +467,7 @@ export function ProposalDashboard({ proposalData: initialProposalData }: Proposa
         proposalData={{
           jobNumber: proposalData.eventDetails.jobNumber,
           clientName: proposalData.eventDetails.clientName,
-          totalCost: proposalData.totalCost
+          totalCost: totalCost
         }}
       />
     </div>

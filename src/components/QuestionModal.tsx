@@ -1,3 +1,4 @@
+// src/components/QuestionModal.tsx
 import { useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -12,7 +13,7 @@ interface QuestionModalProps {
   onClose: () => void;
   item?: ProposalItem;
   sectionName?: string;
-  onSubmitQuestion: (question: string, itemId: string, itemName: string, sectionName: string) => void;
+  onSubmitQuestion: (question: string, itemId: string, itemName: string, sectionName: string) => Promise<void>;
 }
 
 export function QuestionModal({ 
@@ -23,17 +24,25 @@ export function QuestionModal({
   onSubmitQuestion 
 }: QuestionModalProps) {
   const [question, setQuestion] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleSubmit = () => {
-    if (question.trim() && item && sectionName) {
-      onSubmitQuestion(question.trim(), item.id, item.description, sectionName);
-      setQuestion("");
-      onClose();
+  const handleSubmit = async () => {
+    if (question.trim() && item && sectionName && !isSubmitting) {
+      setIsSubmitting(true);
+      try {
+        await onSubmitQuestion(question.trim(), item.id, item.description, sectionName);
+        setQuestion("");
+        onClose();
+      } catch (error) {
+        console.error('Failed to submit question:', error);
+      } finally {
+        setIsSubmitting(false);
+      }
     }
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
-    if (e.key === "Enter" && e.ctrlKey) {
+    if (e.key === "Enter" && e.ctrlKey && !isSubmitting) {
       handleSubmit();
     }
   };
@@ -75,6 +84,7 @@ export function QuestionModal({
                 onChange={(e) => setQuestion(e.target.value)}
                 onKeyPress={handleKeyPress}
                 className="min-h-[120px]"
+                disabled={isSubmitting}
               />
               <p className="text-xs text-muted-foreground">
                 Press Ctrl+Enter to submit • Be specific to get the best answer
@@ -82,16 +92,29 @@ export function QuestionModal({
             </div>
 
             <div className="flex justify-end gap-2">
-              <Button variant="outline" onClick={onClose}>
+              <Button 
+                variant="outline" 
+                onClick={onClose}
+                disabled={isSubmitting}
+              >
                 Cancel
               </Button>
               <Button
                 onClick={handleSubmit}
-                disabled={!question.trim()}
+                disabled={!question.trim() || isSubmitting}
                 className="bg-gradient-primary hover:opacity-90"
               >
-                <Send className="h-4 w-4 mr-2" />
-                Submit Request
+                {isSubmitting ? (
+                  <>
+                    <div className="h-4 w-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />
+                    Submitting...
+                  </>
+                ) : (
+                  <>
+                    <Send className="h-4 w-4 mr-2" />
+                    Submit Request
+                  </>
+                )}
               </Button>
             </div>
           </div>

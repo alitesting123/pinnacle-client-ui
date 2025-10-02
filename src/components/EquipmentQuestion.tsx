@@ -7,35 +7,30 @@ import { Textarea } from "@/components/ui/textarea";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { HelpCircle, Send, Clock, CheckCircle, MessageSquare } from "lucide-react";
 import { format } from "date-fns";
-
-export interface EquipmentQuestionData {
-  id: string;
-  itemId: string;
-  itemName: string;
-  sectionName: string;
-  question: string;
-  answer?: string;
-  status: 'pending' | 'answered';
-  askedBy: string;
-  askedAt: string;
-  answeredBy?: string;
-  answeredAt?: string;
-}
+import { EquipmentQuestionData } from "@/types/proposal";
 
 interface EquipmentQuestionProps {
   question: EquipmentQuestionData;
-  onAnswer?: (questionId: string, answer: string) => void; // Added this line
+  onAnswer?: (questionId: string, answer: string) => Promise<void>;
 }
 
 export function EquipmentQuestion({ question, onAnswer }: EquipmentQuestionProps) {
   const [isAnswering, setIsAnswering] = useState(false);
   const [answerText, setAnswerText] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleSubmitAnswer = () => {
-    if (answerText.trim()) {
-      onAnswer?.(question.id, answerText.trim());
-      setAnswerText("");
-      setIsAnswering(false);
+  const handleSubmitAnswer = async () => {
+    if (answerText.trim() && !isSubmitting) {
+      setIsSubmitting(true);
+      try {
+        await onAnswer?.(question.id, answerText.trim());
+        setAnswerText("");
+        setIsAnswering(false);
+      } catch (error) {
+        console.error('Failed to submit answer:', error);
+      } finally {
+        setIsSubmitting(false);
+      }
     }
   };
 
@@ -124,16 +119,26 @@ export function EquipmentQuestion({ question, onAnswer }: EquipmentQuestionProps
                     value={answerText}
                     onChange={(e) => setAnswerText(e.target.value)}
                     className="min-h-[100px]"
+                    disabled={isSubmitting}
                   />
                   <div className="flex gap-2">
                     <Button
                       size="sm"
                       onClick={handleSubmitAnswer}
-                      disabled={!answerText.trim()}
+                      disabled={!answerText.trim() || isSubmitting}
                       className="bg-gradient-primary hover:opacity-90"
                     >
-                      <Send className="h-4 w-4 mr-2" />
-                      Submit Answer
+                      {isSubmitting ? (
+                        <>
+                          <div className="h-4 w-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />
+                          Submitting...
+                        </>
+                      ) : (
+                        <>
+                          <Send className="h-4 w-4 mr-2" />
+                          Submit Answer
+                        </>
+                      )}
                     </Button>
                     <Button
                       variant="outline"
@@ -142,6 +147,7 @@ export function EquipmentQuestion({ question, onAnswer }: EquipmentQuestionProps
                         setIsAnswering(false);
                         setAnswerText("");
                       }}
+                      disabled={isSubmitting}
                     >
                       Cancel
                     </Button>
