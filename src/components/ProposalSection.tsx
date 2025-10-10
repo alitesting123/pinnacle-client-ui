@@ -61,7 +61,7 @@ export function ProposalSection({
       staging: "🎭",
       labor: "👷"
     };
-    return icons[category] || "📦";
+    return icons[category];
   };
 
   const formatCurrency = (amount: number) => {

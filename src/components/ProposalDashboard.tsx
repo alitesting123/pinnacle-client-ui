@@ -14,6 +14,7 @@ import { QuestionModal } from "./QuestionModal";
 import { SignatureModal } from "./SignatureModal";
 import { ProposalData, ProposalItem, EquipmentQuestionData } from "@/types/proposal";
 import { toast } from "@/hooks/use-toast";
+import { Footer } from "./Footer"; // ADD THIS IMPORT
 
 interface ProposalDashboardProps {
   proposalData: ProposalData;
@@ -364,7 +365,7 @@ export function ProposalDashboard({ proposalData: initialProposalData }: Proposa
               {/* Section Controls */}
               <div className="flex items-center justify-between p-4 bg-secondary/30 rounded-lg">
                 <div className="flex items-center gap-4">
-                  <h3 className="font-semibold text-foreground">Equipment Sections</h3>
+                  <h3 className="font-semibold text-foreground">Prososal breakdown</h3>
                   <Badge variant="secondary">
                     {sections.length} categories
                   </Badge>
@@ -446,6 +447,9 @@ export function ProposalDashboard({ proposalData: initialProposalData }: Proposa
           </Tabs>
         </div>
       </div>
+
+    {/* ADD FOOTER HERE - AT THE END */}
+    <Footer />
 
       {/* Question Modal */}
       <QuestionModal
