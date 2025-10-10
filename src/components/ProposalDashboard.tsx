@@ -91,7 +91,6 @@ export function ProposalDashboard({ proposalData: initialProposalData }: Proposa
       setIsQuestionModalOpen(true);
     }
   };
-
   const handleSubmitQuestion = async (question: string, itemId: string, itemName: string, sectionName: string) => {
     try {
       const response = await fetch(`/api/v1/proposals/${proposalId}/questions`, {
@@ -106,11 +105,11 @@ export function ProposalDashboard({ proposalData: initialProposalData }: Proposa
           question: question,
         }),
       });
-
+  
       if (!response.ok) {
         throw new Error('Failed to submit question');
       }
-
+  
       const newQuestion = await response.json();
       
       // Add new question to the list
@@ -129,6 +128,45 @@ export function ProposalDashboard({ proposalData: initialProposalData }: Proposa
       });
     }
   };
+  
+  const handleAskGeneralQuestion = async (question: string, subject: string) => {
+    try {
+      const response = await fetch(`/api/v1/proposals/${proposalId}/questions`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          item_id: 'general',
+          item_name: subject,
+          section_name: 'General',
+          question: question,
+        }),
+      });
+  
+      if (!response.ok) {
+        throw new Error('Failed to submit question');
+      }
+  
+      const newQuestion = await response.json();
+      
+      // Add new question to the list
+      setQuestions(prev => [newQuestion, ...prev]);
+      
+      toast({
+        title: "Question Submitted",
+        description: `Your question about "${subject}" has been sent to the Pinnacle Live team.`,
+      });
+    } catch (error) {
+      console.error('Failed to submit general question:', error);
+      toast({
+        title: "Error",
+        description: "Failed to submit question. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
+  
 
   const handleAnswerQuestion = async (questionId: string, answer: string) => {
     try {
@@ -290,10 +328,7 @@ export function ProposalDashboard({ proposalData: initialProposalData }: Proposa
                   Share
                 </Button>
               )}
-              <Button variant="outline" size="sm" className="hover:bg-secondary">
-                <Settings className="h-4 w-4 mr-2" />
-                Settings
-              </Button>
+              
             </div>
           </div>
         </div>
@@ -432,9 +467,10 @@ export function ProposalDashboard({ proposalData: initialProposalData }: Proposa
                 </Card>
               ) : (
                 <QuestionsPanel
-                  questions={questions}
-                  onAnswerQuestion={handleAnswerQuestion}
-                />
+                questions={questions}
+                onAnswerQuestion={handleAnswerQuestion}
+                onAskGeneralQuestion={handleAskGeneralQuestion}
+              />
               )}
             </TabsContent>
 

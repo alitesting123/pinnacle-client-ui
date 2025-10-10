@@ -1,3 +1,4 @@
+// src/components/ProposalHeader.tsx - UPDATED with dynamic backgrounds
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { Calendar, MapPin, User, Clock, Building } from "lucide-react";
@@ -8,6 +9,22 @@ interface ProposalHeaderProps {
   eventDetails: EventDetails;
   totalCost: number;
 }
+
+// Map client names to background images
+const getClientBackground = (clientName: string): string => {
+  // Normalize client name for comparison (lowercase, remove special chars)
+  const normalizedName = clientName.toLowerCase().replace(/[^a-z0-9]/g, '');
+  
+  // Hash the client name to get a consistent image
+  const hashCode = normalizedName.split('').reduce((acc, char) => {
+    return char.charCodeAt(0) + ((acc << 5) - acc);
+  }, 0);
+  
+  // Use modulo to select from available images (1-3)
+  const imageNumber = Math.abs(hashCode % 3) + 1;
+  
+  return `/unsplash${imageNumber}.jpg`;
+};
 
 export function ProposalHeader({ eventDetails, totalCost }: ProposalHeaderProps) {
   const statusColors = {
@@ -27,17 +44,19 @@ export function ProposalHeader({ eventDetails, totalCost }: ProposalHeaderProps)
     return `${startMonth} - ${endFormatted}`;
   };
 
+  // Get the dynamic background image for this client
+  const backgroundImage = getClientBackground(eventDetails.clientName);
+
   return (
     <Card className="border-card-border shadow-md overflow-hidden">
       <div className="relative">
-        {/* Background Image - Visible at top */}
+        {/* Background Image - Dynamic based on client */}
         <div 
-          className="absolute inset-0 bg-cover bg-left bg-no-repeat"
+          className="absolute inset-0 bg-cover bg-center bg-no-repeat"
           style={{
-               backgroundImage: `url('/unsplash.jpg')`
+            backgroundImage: `url('${backgroundImage}')`
           }}
         />
-        https://unsplash.com/photos/city-skyline-during-night-time-BHFP2Ty52yw
         
         {/* Gradient Overlay - Transparent at top, opaque at bottom */}
         <div className="absolute inset-0 bg-gradient-to-b from-transparent via-background/20 to-background"></div>
