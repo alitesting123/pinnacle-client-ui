@@ -9,6 +9,7 @@ import SecureProposal from "./pages/SecureProposal";
 import AdminDashboard from "./pages/AdminDashboard";
 import NotFound from "./pages/NotFound";
 import TempAccess from "./pages/TempAccess";
+import AdminSendProposal from "./pages/AdminSendProposal";
 
 const queryClient = new QueryClient();
 
@@ -24,6 +25,7 @@ const App = () => (
           <Route path="/secure/:token" element={<SecureProposal />} />
        
           <Route path="/temp-access" element={<TempAccess />} />
+          <Route path="/admin/send-proposal" element={<AdminSendProposal />} />
           
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
