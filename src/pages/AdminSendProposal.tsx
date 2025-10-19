@@ -1,4 +1,4 @@
-// src/pages/AdminSendProposal.tsx
+// src/pages/AdminSendProposal.tsx - COMPLETE FIXED FILE
 import React, { useState, useEffect } from 'react';
 import { Send, Users, FileText, Check, AlertCircle, Loader2, Mail, Clock, Copy } from 'lucide-react';
 
@@ -45,8 +45,8 @@ const AdminSendProposal = () => {
   
   const [selectedClient, setSelectedClient] = useState<Client | null>(null);
   const [selectedProposal, setSelectedProposal] = useState<Proposal | null>(null);
-  const [adminEmail, setAdminEmail] = useState('ifthikarali20@gmail.com'); // Pre-filled sender
-  const [recipientEmail, setRecipientEmail] = useState(''); // Manual email input
+  const [adminEmail, setAdminEmail] = useState('ifthikarali20@gmail.com');
+  const [recipientEmail, setRecipientEmail] = useState(''); // ✅ This is the PRIMARY input
   
   const [notification, setNotification] = useState<Notification | null>(null);
   const [sentLinks, setSentLinks] = useState<SentLink[]>([]);
@@ -69,14 +69,12 @@ const AdminSendProposal = () => {
       const clientsData = await clientsRes.json();
       const proposalsData = await proposalsRes.json();
       
-      // Filter only clients from approved users
       const clientUsers = Array.isArray(clientsData) 
         ? clientsData.filter((user: Client) => user.roles.includes('client'))
         : [];
       
       setClients(clientUsers);
       
-      // Handle different proposal response formats
       const proposalsList = proposalsData.proposals || proposalsData || [];
       setProposals(Array.isArray(proposalsList) ? proposalsList : []);
       
@@ -94,13 +92,15 @@ const AdminSendProposal = () => {
   };
 
   const handleSendProposal = async () => {
-    // Use manual email input if provided, otherwise use selected client's email
-    const emailToSend = recipientEmail || selectedClient?.email;
+    // ✅ FIXED: ONLY use recipientEmail (what user typed)
+    // DO NOT use selectedClient.email as fallback
     
-    if (!emailToSend || !selectedProposal || !adminEmail) {
-      showNotification('Please provide recipient email, select a proposal, and enter your email', 'error');
+    if (!recipientEmail || !selectedProposal || !adminEmail) {
+      showNotification('Please enter recipient email, select a proposal, and enter your email', 'error');
       return;
     }
+
+    console.log('🔍 DEBUG: Sending email to:', recipientEmail); // Debug log
 
     setSending(true);
     
@@ -111,7 +111,7 @@ const AdminSendProposal = () => {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          client_email: emailToSend,  // Can be any email
+          client_email: recipientEmail,  // ✅ ONLY use typed email
           proposal_id: selectedProposal.job_number,
           admin_email: adminEmail,
           session_duration_minutes: 20
@@ -127,12 +127,12 @@ const AdminSendProposal = () => {
       
       showNotification(data.message, 'success');
       
-      // Add to sent history
+      // Add to sent history using ENTERED email
       setSentLinks(prev => [{
-        client: selectedClient || {
+        client: {
           id: 'manual',
-          email: emailToSend,
-          full_name: data.client_name || emailToSend.split('@')[0],
+          email: recipientEmail,  // ✅ Use entered email
+          full_name: recipientEmail.split('@')[0],
           company: data.proposal_info?.client_name || 'Manual Entry',
           department: '',
           roles: ['client'],
@@ -147,7 +147,7 @@ const AdminSendProposal = () => {
       // Reset form
       setSelectedClient(null);
       setSelectedProposal(null);
-      setRecipientEmail('');
+      setRecipientEmail('');  // ✅ Clear the input
       
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Failed to send proposal';
@@ -239,7 +239,7 @@ const AdminSendProposal = () => {
               <ol className="space-y-2 text-sm text-gray-700">
                 <li className="flex gap-2">
                   <span className="font-bold text-blue-600">1.</span>
-                  <span>Enter recipient's email (any email - even ali2@gmail.com for testing)</span>
+                  <span>Enter recipient's email (betterandbliss@gmail.com, ali2@gmail.com, etc.)</span>
                 </li>
                 <li className="flex gap-2">
                   <span className="font-bold text-blue-600">2.</span>
@@ -252,7 +252,7 @@ const AdminSendProposal = () => {
               </ol>
               <div className="mt-3 pt-3 border-t border-blue-200">
                 <p className="text-xs text-gray-600">
-                  ✉️ All emails sent from: <strong>{adminEmail}</strong>
+                  ✉️ All emails sent from: <strong>ifthicaralikhan@gmail.com</strong>
                 </p>
               </div>
             </div>
@@ -272,32 +272,25 @@ const AdminSendProposal = () => {
                   setRecipientEmail(e.target.value);
                   setSelectedClient(null); // Clear client selection when typing
                 }}
-                placeholder="Enter recipient email (e.g., ali2@gmail.com)"
+                placeholder="Enter recipient email (e.g., betterandbliss@gmail.com)"
                 className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-base"
               />
               <div className="mt-3 p-3 bg-yellow-50 border border-yellow-200 rounded">
                 <p className="text-xs text-yellow-800">
-                  💡 <strong>Testing:</strong> Use ali2@gmail.com to receive the email in your test inbox
+                  💡 <strong>Testing:</strong> Use betterandbliss@gmail.com or ali2@gmail.com for testing
                 </p>
               </div>
               
-              {/* Show selected client email if any */}
-              {selectedClient && (
-                <div className="mt-3 p-3 bg-green-50 border border-green-200 rounded">
-                  <p className="text-xs text-green-800">
-                    ✓ Using email from selected client: <strong>{selectedClient.email}</strong>
-                  </p>
-                </div>
-              )}
+              {/* Remove the confusing "Using email from selected client" message */}
             </div>
 
-            {/* Quick Select from Pre-Approved Clients */}
+            {/* Quick Select from Pre-Approved Clients - OPTIONAL */}
             <div className="bg-white rounded-lg shadow p-6">
               <div className="flex items-center justify-between mb-3">
                 <label className="block text-sm font-semibold text-gray-900">
-                  Or Quick Select Client
+                  Or Quick Fill Email from Client List
                 </label>
-                <span className="text-xs text-gray-500">(Optional)</span>
+                <span className="text-xs text-gray-500">(Optional - just fills the email above)</span>
               </div>
               <div className="max-h-48 overflow-y-auto space-y-2">
                 {clients.length === 0 ? (
@@ -310,14 +303,11 @@ const AdminSendProposal = () => {
                     <button
                       key={client.id}
                       onClick={() => {
-                        setSelectedClient(client);
-                        setRecipientEmail(''); // Clear manual input
+                        // ✅ Just fill the email input, don't select the client
+                        setRecipientEmail(client.email);
+                        setSelectedClient(null);
                       }}
-                      className={`w-full text-left p-3 rounded-lg border-2 transition-all ${
-                        selectedClient?.id === client.id
-                          ? 'border-green-500 bg-green-50'
-                          : 'border-gray-200 hover:border-gray-300'
-                      }`}
+                      className="w-full text-left p-3 rounded-lg border-2 border-gray-200 hover:border-blue-300 hover:bg-blue-50 transition-all"
                     >
                       <div className="flex items-start justify-between">
                         <div>
@@ -327,9 +317,6 @@ const AdminSendProposal = () => {
                             <div className="text-xs text-gray-500 mt-0.5">{client.company}</div>
                           )}
                         </div>
-                        {selectedClient?.id === client.id && (
-                          <Check className="w-5 h-5 text-green-600" />
-                        )}
                       </div>
                     </button>
                   ))
@@ -405,29 +392,22 @@ const AdminSendProposal = () => {
               ) : (
                 <div className="space-y-4">
                   {/* Recipient Info */}
-                  {(recipientEmail || selectedClient) && (
-                    <div className="p-4 bg-blue-50 rounded-lg">
-                      <div className="text-sm text-gray-600 mb-1">📧 Sending to:</div>
-                      <div className="font-medium text-gray-900">
-                        {recipientEmail || selectedClient?.email}
+                  {recipientEmail && (
+                    <div className="p-4 bg-blue-50 rounded-lg border-2 border-blue-300">
+                      <div className="text-sm text-gray-600 mb-1">📧 Email will be sent to:</div>
+                      <div className="font-bold text-gray-900 text-lg">
+                        {recipientEmail}
                       </div>
-                      {selectedClient && (
-                        <div className="text-sm text-gray-600 mt-1">
-                          {selectedClient.full_name} • {selectedClient.company}
-                        </div>
-                      )}
-                      {recipientEmail && !selectedClient && (
-                        <div className="text-xs text-gray-500 mt-1">
-                          💡 Test email (not a pre-approved client)
-                        </div>
-                      )}
+                      <div className="text-xs text-blue-700 mt-2">
+                        ✅ This is where the email will go
+                      </div>
                     </div>
                   )}
                   
                   {/* Proposal Info */}
                   {selectedProposal && (
                     <div className="p-4 bg-green-50 rounded-lg">
-                      <div className="text-sm text-gray-600 mb-1">📄 Proposal/Job:</div>
+                      <div className="text-sm text-gray-600 mb-1">📄 Proposal Details:</div>
                       <div className="font-bold text-gray-900 text-lg">
                         Job #{selectedProposal.job_number}
                       </div>
@@ -446,7 +426,7 @@ const AdminSendProposal = () => {
                   {/* Sender Info */}
                   <div className="p-4 bg-gray-50 rounded-lg">
                     <div className="text-sm text-gray-600 mb-1">✉️ From:</div>
-                    <div className="font-medium text-gray-900">{adminEmail}</div>
+                    <div className="font-medium text-gray-900">Pinnacle Live &lt;ifthicaralikhan@gmail.com&gt;</div>
                     <div className="text-xs text-gray-500 mt-1">(All emails sent from this address)</div>
                   </div>
 
@@ -459,7 +439,7 @@ const AdminSendProposal = () => {
                           🔒 Secure 20-minute access link
                         </div>
                         <div className="text-xs text-blue-700 mt-1">
-                          Client can extend by 10 minutes if needed
+                          Recipient can extend by 10 minutes if needed
                         </div>
                       </div>
                     </div>
@@ -471,7 +451,7 @@ const AdminSendProposal = () => {
             {/* Send Button */}
             <button
               onClick={handleSendProposal}
-              disabled={!(recipientEmail || selectedClient) || !selectedProposal || sending}
+              disabled={!recipientEmail || !selectedProposal || sending}
               className="w-full bg-blue-600 text-white py-4 rounded-lg font-medium hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2"
             >
               {sending ? (
@@ -489,17 +469,17 @@ const AdminSendProposal = () => {
             
             {/* Helper Text */}
             <div className="text-center text-xs text-gray-500">
-              {!(recipientEmail || selectedClient) && !selectedProposal && (
+              {!recipientEmail && !selectedProposal && (
                 <p>⚠️ Please enter recipient email and select a proposal</p>
               )}
-              {!(recipientEmail || selectedClient) && selectedProposal && (
-                <p>⚠️ Please enter recipient email or select a client</p>
+              {!recipientEmail && selectedProposal && (
+                <p>⚠️ Please enter recipient email</p>
               )}
-              {(recipientEmail || selectedClient) && !selectedProposal && (
+              {recipientEmail && !selectedProposal && (
                 <p>⚠️ Please select a proposal/job to send</p>
               )}
-              {(recipientEmail || selectedClient) && selectedProposal && (
-                <p>✅ Ready to send! Click the button above</p>
+              {recipientEmail && selectedProposal && (
+                <p>✅ Ready to send to {recipientEmail}!</p>
               )}
             </div>
 
@@ -514,8 +494,8 @@ const AdminSendProposal = () => {
                     <div key={index} className="p-3 bg-gray-50 rounded border border-gray-200">
                       <div className="flex items-start justify-between mb-2">
                         <div>
-                          <div className="font-medium text-sm">{link.client.full_name}</div>
-                          <div className="text-xs text-gray-500">#{link.proposal.job_number}</div>
+                          <div className="font-medium text-sm text-blue-600">{link.client.email}</div>
+                          <div className="text-xs text-gray-500">Job #{link.proposal.job_number}</div>
                         </div>
                         <button
                           onClick={() => copyToClipboard(link.url)}
