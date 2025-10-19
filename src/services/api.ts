@@ -197,7 +197,7 @@ class ApiService {
 
 // Create API instance
 const apiConfig: ApiConfig = {
-  baseURL: import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000',
+  baseURL: import.meta.env.VITE_API_BASE_URL || 'http://production-env.eba-qeuwm4sn.us-west-2.elasticbeanstalk.com',
   timeout: 10000,
 };
 

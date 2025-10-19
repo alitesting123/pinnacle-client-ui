@@ -1,4 +1,4 @@
-// src/pages/AdminDashboard.tsx (create new file)
+// src/pages/AdminDashboard.tsx - COMPLETE FIXED FILE
 import React, { useState, useEffect } from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -30,6 +30,8 @@ interface ApprovedUser {
 }
 
 const AdminDashboard = () => {
+  const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://production-env.eba-qeuwm4sn.us-west-2.elasticbeanstalk.com';
+  
   const [generatedLinks, setGeneratedLinks] = useState<GeneratedLink[]>([]);
   const [approvedUsers, setApprovedUsers] = useState<ApprovedUser[]>([]);
   const [generating, setGenerating] = useState(false);
@@ -48,7 +50,7 @@ const AdminDashboard = () => {
 
   const loadApprovedUsers = async () => {
     try {
-      const response = await fetch('http://localhost:8000/api/v1/admin/approved-users');
+      const response = await fetch(`${API_BASE}/api/v1/admin/approved-users`);
       if (response.ok) {
         const users = await response.json();
         setApprovedUsers(users);
@@ -65,7 +67,7 @@ const AdminDashboard = () => {
     
     setGenerating(true);
     try {
-      const response = await fetch(`http://localhost:8000/api/v1/proposals/${proposalId}/generate-link`, {
+      const response = await fetch(`${API_BASE}/api/v1/proposals/${proposalId}/generate-link`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

@@ -29,7 +29,8 @@ const SecureProposal = () => {
     try {
       console.log("Validating token:", token); // Debug log
       
-      const response = await fetch(`http://localhost:8000/api/v1/secure-proposals/${token}`, {
+       const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://production-env.eba-qeuwm4sn.us-west-2.elasticbeanstalk.com';
+       const response = await fetch(`${API_BASE}/api/v1/secure-proposals/${token}`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',

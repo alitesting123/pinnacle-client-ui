@@ -38,6 +38,11 @@ interface Notification {
 }
 
 const AdminSendProposal = () => {
+  // ✅ API_BASE with environment variable support
+  const API_BASE = import.meta.env.VITE_API_BASE_URL 
+    ? `${import.meta.env.VITE_API_BASE_URL}/api/v1`
+    : 'http://production-env.eba-qeuwm4sn.us-west-2.elasticbeanstalk.com/api/v1';
+
   const [clients, setClients] = useState<Client[]>([]);
   const [proposals, setProposals] = useState<Proposal[]>([]);
   const [loading, setLoading] = useState(true);
@@ -46,12 +51,10 @@ const AdminSendProposal = () => {
   const [selectedClient, setSelectedClient] = useState<Client | null>(null);
   const [selectedProposal, setSelectedProposal] = useState<Proposal | null>(null);
   const [adminEmail, setAdminEmail] = useState('ifthikarali20@gmail.com');
-  const [recipientEmail, setRecipientEmail] = useState(''); // ✅ This is the PRIMARY input
+  const [recipientEmail, setRecipientEmail] = useState(''); // ✅ PRIMARY input
   
   const [notification, setNotification] = useState<Notification | null>(null);
   const [sentLinks, setSentLinks] = useState<SentLink[]>([]);
-
-  const API_BASE = 'http://localhost:8000/api/v1';
 
   useEffect(() => {
     loadData();
@@ -92,15 +95,13 @@ const AdminSendProposal = () => {
   };
 
   const handleSendProposal = async () => {
-    // ✅ FIXED: ONLY use recipientEmail (what user typed)
-    // DO NOT use selectedClient.email as fallback
-    
+    // ✅ ONLY use recipientEmail (what user typed)
     if (!recipientEmail || !selectedProposal || !adminEmail) {
       showNotification('Please enter recipient email, select a proposal, and enter your email', 'error');
       return;
     }
 
-    console.log('🔍 DEBUG: Sending email to:', recipientEmail); // Debug log
+    console.log('🔍 DEBUG: Sending email to:', recipientEmail);
 
     setSending(true);
     
@@ -270,7 +271,7 @@ const AdminSendProposal = () => {
                 value={recipientEmail}
                 onChange={(e) => {
                   setRecipientEmail(e.target.value);
-                  setSelectedClient(null); // Clear client selection when typing
+                  setSelectedClient(null);
                 }}
                 placeholder="Enter recipient email (e.g., betterandbliss@gmail.com)"
                 className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-base"
@@ -280,11 +281,9 @@ const AdminSendProposal = () => {
                   💡 <strong>Testing:</strong> Use betterandbliss@gmail.com or ali2@gmail.com for testing
                 </p>
               </div>
-              
-              {/* Remove the confusing "Using email from selected client" message */}
             </div>
 
-            {/* Quick Select from Pre-Approved Clients - OPTIONAL */}
+            {/* Quick Select from Pre-Approved Clients */}
             <div className="bg-white rounded-lg shadow p-6">
               <div className="flex items-center justify-between mb-3">
                 <label className="block text-sm font-semibold text-gray-900">
@@ -303,7 +302,6 @@ const AdminSendProposal = () => {
                     <button
                       key={client.id}
                       onClick={() => {
-                        // ✅ Just fill the email input, don't select the client
                         setRecipientEmail(client.email);
                         setSelectedClient(null);
                       }}

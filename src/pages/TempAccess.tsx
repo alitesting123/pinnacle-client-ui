@@ -57,7 +57,8 @@ const TempAccess = () => {
   const validateAccessAndLoadProposal = async () => {
     try {
       // Step 1: Validate temp access token
-      const response = await fetch(`http://localhost:8000/api/v1/temp-access/${token}`, {
+      const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://production-env.eba-qeuwm4sn.us-west-2.elasticbeanstalk.com';
+      const response = await fetch(`${API_BASE}/api/v1/temp-access/${token}`, {
         method: 'GET',
         headers: { 'Content-Type': 'application/json' }
       });
@@ -73,7 +74,7 @@ const TempAccess = () => {
       
       // Step 2: Load proposal with session
       const proposalResponse = await fetch(
-        `http://localhost:8000/api/v1/proposals/${sessionData.proposal_id}/temp-session?session_id=${sessionIdFromResponse}`,
+        `${API_BASE}/api/v1/proposals/${sessionData.proposal_id}/temp-session?session_id=${sessionIdFromResponse}`,
         {
           method: 'GET',
           headers: { 'Content-Type': 'application/json' }
@@ -102,8 +103,9 @@ const TempAccess = () => {
   const extendSession = async () => {
     setExtending(true);
     try {
+      const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://production-env.eba-qeuwm4sn.us-west-2.elasticbeanstalk.com';
       const response = await fetch(
-        `http://localhost:8000/api/v1/temp-sessions/${sessionId}/extend`,
+        `${API_BASE}/api/v1/temp-sessions/${sessionId}/extend`,
         {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' }
