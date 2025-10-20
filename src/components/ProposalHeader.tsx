@@ -124,7 +124,7 @@ export function ProposalHeader({ eventDetails, totalCost }: ProposalHeaderProps)
                   <Clock className="h-5 w-5 text-primary" />
                 </div>
                 <div>
-                  <p className="text-sm text-muted-foreground">Last Modified</p>
+                  <p className="text-sm text-muted-foreground">Last Changed</p>
                   <p className="font-semibold text-foreground">
                     {format(new Date(eventDetails.lastModified), 'MMM dd, yyyy')}
                   </p>
