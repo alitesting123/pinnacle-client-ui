@@ -12,25 +12,48 @@ export default defineConfig(({ mode }) => ({
     // Proxy API requests to your FastAPI backend during development
     proxy: {
       '/api': {
-        target: 'http://localhost:8000',
+        target: mode === 'development' 
+          ? 'http://localhost:8000'
+          : 'https://dlndpgwc2naup.cloudfront.net',
         changeOrigin: true,
         secure: false,
       },
       '/health': {
-        target: 'http://localhost:8000',
+        target: mode === 'development'
+          ? 'http://localhost:8000'
+          : 'https://dlndpgwc2naup.cloudfront.net',
         changeOrigin: true,
         secure: false,
       }
     }
   },
-  plugins: [react(), mode === "development" && componentTagger()].filter(Boolean),
+  plugins: [
+    react(), 
+    mode === "development" && componentTagger()
+  ].filter(Boolean),
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),
     },
   },
+  // ✅ ADDED: Explicitly include public directory
+  publicDir: 'public',
+  
   // Define environment variables
   define: {
     __APP_VERSION__: JSON.stringify(process.env.npm_package_version),
+  },
+  
+  // ✅ ADDED: Build configuration for production
+  build: {
+    outDir: 'dist',
+    sourcemap: mode === 'development',
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          'react-vendor': ['react', 'react-dom', 'react-router-dom'],
+        },
+      },
+    },
   },
 }));
