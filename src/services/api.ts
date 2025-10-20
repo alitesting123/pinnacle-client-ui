@@ -61,14 +61,12 @@ class ApiService {
       'Content-Type': 'application/json',
     };
 
-    // Add mock SSO headers for testing (remove when real SSO is implemented)
-    const mockHeaders = this.getMockSSOHeaders();
+    // ✅ REMOVED: Mock SSO headers - backend handles auth via tokens
     
     const config: RequestInit = {
       ...options,
       headers: {
         ...defaultHeaders,
-        ...mockHeaders,
         ...options.headers,
       },
     };
@@ -96,17 +94,7 @@ class ApiService {
     }
   }
 
-  // Mock SSO headers for testing (replace with real SSO integration later)
-  private getMockSSOHeaders(): Record<string, string> {
-    return {
-      'X-SSO-User': 'frontend-user-123',
-      'X-SSO-Email': 'user@company.com',
-      'X-SSO-Name': 'Frontend User',
-      'X-SSO-Company': 'Test Company',
-      'X-SSO-Roles': 'user,admin',
-      'X-SSO-Department': 'Engineering'
-    };
-  }
+  // ✅ REMOVED: getMockSSOHeaders() method entirely
 
   // API Methods with proper typing
   async getCurrentUser(): Promise<User | null> {
