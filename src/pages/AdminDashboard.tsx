@@ -30,7 +30,7 @@ interface ApprovedUser {
 }
 
 const AdminDashboard = () => {
-  const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://production-env.eba-qeuwm4sn.us-west-2.elasticbeanstalk.com';
+  const API_BASE = import.meta.env.VITE_API_BASE_URL || 'https://dlndpgwc2naup.cloudfront.net';
   
   const [generatedLinks, setGeneratedLinks] = useState<GeneratedLink[]>([]);
   const [approvedUsers, setApprovedUsers] = useState<ApprovedUser[]>([]);

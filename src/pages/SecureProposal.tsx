@@ -29,7 +29,7 @@ const SecureProposal = () => {
     try {
       console.log("Validating token:", token); // Debug log
       
-       const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://production-env.eba-qeuwm4sn.us-west-2.elasticbeanstalk.com';
+       const API_BASE = import.meta.env.VITE_API_BASE_URL || 'https://dlndpgwc2naup.cloudfront.net';
        const response = await fetch(`${API_BASE}/api/v1/secure-proposals/${token}`, {
         method: 'GET',
         headers: {

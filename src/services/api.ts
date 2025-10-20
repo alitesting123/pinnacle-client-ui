@@ -185,7 +185,7 @@ class ApiService {
 
 // Create API instance
 const apiConfig: ApiConfig = {
-  baseURL: import.meta.env.VITE_API_BASE_URL || 'http://production-env.eba-qeuwm4sn.us-west-2.elasticbeanstalk.com',
+  baseURL: import.meta.env.VITE_API_BASE_URL || 'https://dlndpgwc2naup.cloudfront.net',
   timeout: 10000,
 };
 

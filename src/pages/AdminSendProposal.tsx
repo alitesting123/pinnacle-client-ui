@@ -41,7 +41,7 @@ const AdminSendProposal = () => {
   // ✅ API_BASE with environment variable support
   const API_BASE = import.meta.env.VITE_API_BASE_URL 
     ? `${import.meta.env.VITE_API_BASE_URL}/api/v1`
-    : 'http://production-env.eba-qeuwm4sn.us-west-2.elasticbeanstalk.com/api/v1';
+    : 'https://dlndpgwc2naup.cloudfront.net/api/v1';
 
   const [clients, setClients] = useState<Client[]>([]);
   const [proposals, setProposals] = useState<Proposal[]>([]);
