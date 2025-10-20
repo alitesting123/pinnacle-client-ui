@@ -4,24 +4,19 @@ import react from "@vitejs/plugin-react-swc";
 import path from "path";
 import { componentTagger } from "lovable-tagger";
 
-// https://vitejs.dev/config/
 export default defineConfig(({ mode }) => ({
   server: {
     host: "::",
     port: 8080,
-    // Proxy API requests to your FastAPI backend during development
+    // ✅ Proxy ONLY for local development
     proxy: {
       '/api': {
-        target: mode === 'development' 
-          ? 'http://localhost:8000'
-          : 'https://dlndpgwc2naup.cloudfront.net',
+        target: 'http://localhost:8000',
         changeOrigin: true,
         secure: false,
       },
       '/health': {
-        target: mode === 'development'
-          ? 'http://localhost:8000'
-          : 'https://dlndpgwc2naup.cloudfront.net',
+        target: 'http://localhost:8000',
         changeOrigin: true,
         secure: false,
       }
@@ -36,15 +31,12 @@ export default defineConfig(({ mode }) => ({
       "@": path.resolve(__dirname, "./src"),
     },
   },
-  // ✅ ADDED: Explicitly include public directory
   publicDir: 'public',
   
-  // Define environment variables
   define: {
     __APP_VERSION__: JSON.stringify(process.env.npm_package_version),
   },
   
-  // ✅ ADDED: Build configuration for production
   build: {
     outDir: 'dist',
     sourcemap: mode === 'development',
