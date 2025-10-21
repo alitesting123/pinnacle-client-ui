@@ -265,11 +265,11 @@ const AdminSendProposal = () => {
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
               <div className="p-3 bg-blue-100 rounded-lg">
-                <Send className="h-6 w-6 text-blue-600" />
+            
               </div>
               <div>
-                <h1 className="text-3xl font-bold text-gray-900">Send Proposal to Client</h1>
-                <p className="text-gray-600 mt-1">Generate and email secure JWT-based proposal links</p>
+                <h1 className="text-3xl font-bold text-gray-900">Test Admin Page</h1>
+                <p className="text-gray-600 mt-1">Send a test email to your application </p>
               </div>
             </div>
             
@@ -281,10 +281,6 @@ const AdminSendProposal = () => {
               <div className="text-right">
                 <div className="text-sm text-gray-500">Proposals</div>
                 <div className="text-2xl font-bold text-green-600">{proposals.length}</div>
-              </div>
-              <div className="text-right">
-                <div className="text-sm text-gray-500">Sent Today</div>
-                <div className="text-2xl font-bold text-purple-600">{sentLinks.length}</div>
               </div>
             </div>
           </div>
@@ -326,39 +322,7 @@ const AdminSendProposal = () => {
           
           <div className="space-y-6">
             
-            {/* Instructions Card */}
-            <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg shadow-sm p-6 border border-blue-200">
-              <h3 className="font-semibold text-gray-900 mb-3 flex items-center gap-2">
-                <Mail className="w-5 h-5 text-blue-600" />
-                How to Send (JWT Method)
-              </h3>
-              <ol className="space-y-2 text-sm text-gray-700">
-                <li className="flex gap-2">
-                  <span className="font-bold text-blue-600">1.</span>
-                  <span>Enter recipient's email (any email address)</span>
-                </li>
-                <li className="flex gap-2">
-                  <span className="font-bold text-blue-600">2.</span>
-                  <span>Select a proposal/job from the list</span>
-                </li>
-                <li className="flex gap-2">
-                  <span className="font-bold text-blue-600">3.</span>
-                  <span>Set expiration time (default 24 hours)</span>
-                </li>
-                <li className="flex gap-2">
-                  <span className="font-bold text-blue-600">4.</span>
-                  <span>Click "Send Proposal via Email"</span>
-                </li>
-              </ol>
-              <div className="mt-4 pt-4 border-t border-blue-200">
-                <div className="flex items-start gap-2">
-                  <Shield className="h-4 w-4 text-blue-600 mt-0.5 flex-shrink-0" />
-                  <p className="text-xs text-gray-600">
-                    <strong>JWT Secured:</strong> Links are cryptographically signed, stateless, and auto-expire. No database storage required.
-                  </p>
-                </div>
-              </div>
-            </div>
+         
 
             {/* Recipient Email Input */}
             <div className="bg-white rounded-lg shadow-md p-6 border-2 border-blue-300">
