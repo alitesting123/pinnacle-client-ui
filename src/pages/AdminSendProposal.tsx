@@ -401,39 +401,6 @@ const AdminSendProposal = () => {
               </select>
             </div>
 
-            {/* Quick Select from Clients */}
-            {/* <div className="bg-white rounded-lg shadow-sm p-6 border border-gray-200">
-              <div className="flex items-center justify-between mb-3">
-                <label className="block text-sm font-semibold text-gray-900 flex items-center gap-2">
-                  <Users className="w-4 h-4 text-gray-600" />
-                  Quick Fill from Client List
-                </label>
-                <span className="text-xs text-gray-500">(Optional)</span>
-              </div>
-              <div className="max-h-48 overflow-y-auto space-y-2">
-                {clients.length === 0 ? (
-                  <div className="text-center py-6 text-gray-400">
-                    <Users className="w-10 h-10 mx-auto mb-2" />
-                    <p className="text-sm">No pre-approved clients</p>
-                  </div>
-                ) : (
-                  clients.map((client) => (
-                    <button
-                      key={client.id}
-                      onClick={() => quickFillFromClient(client)}
-                      className="w-full text-left p-3 rounded-lg border-2 border-gray-200 hover:border-blue-300 hover:bg-blue-50 transition-all"
-                    >
-                      <div className="font-medium text-sm text-gray-900">{client.full_name}</div>
-                      <div className="text-xs text-blue-600 font-medium">{client.email}</div>
-                      {client.company && (
-                        <div className="text-xs text-gray-500 mt-0.5">{client.company}</div>
-                      )}
-                    </button>
-                  ))
-                )}
-              </div>
-            </div> */}
-
             {/* Select Proposal */}
             <div className="bg-white rounded-lg shadow-sm p-6 border border-gray-200">
               <label className="block text-sm font-semibold text-gray-900 mb-3 flex items-center gap-2">
@@ -492,10 +459,10 @@ const AdminSendProposal = () => {
           {/* RIGHT COLUMN - PREVIEW & SEND */}
           {/* ============================================================================ */}
           
-          <div className="space-y-6">
+          <div className="space-y-6 relative">
             
             {/* Preview Card */}
-            <div className="bg-white rounded-lg shadow-md p-6 border border-gray-200 sticky top-6">
+            <div className="bg-white rounded-lg shadow-md p-6 border border-gray-200">
               <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
                 <Mail className="w-5 h-5 text-blue-600" />
                 Email Preview
@@ -572,41 +539,43 @@ const AdminSendProposal = () => {
               )}
             </div>
 
-            {/* Send Button */}
-            <button
-              onClick={handleSendProposal}
-              disabled={!recipientEmail || !selectedProposal || sending}
-              className="w-full bg-blue-600 text-white py-4 rounded-lg font-medium hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2 shadow-md disabled:shadow-none"
-            >
-              {sending ? (
-                <>
-                  <Loader2 className="h-5 w-5 animate-spin" />
-                  Sending Email...
-                </>
-              ) : (
-                <>
-                  <Send className="h-5 w-5" />
-                  Send Proposal via Email
-                </>
-              )}
-            </button>
-            
-            {/* Status Message */}
-            <div className="text-center text-xs">
-              {!recipientEmail && !selectedProposal && (
-                <p className="text-gray-500">⚠️ Enter email and select proposal</p>
-              )}
-              {recipientEmail && selectedProposal && !sending && (
-                <p className="text-green-600 font-medium">✅ Ready to send!</p>
-              )}
-              {sending && (
-                <p className="text-blue-600 font-medium">📧 Generating JWT and sending email...</p>
-              )}
+            {/* Send Button - Fixed Position */}
+            <div className="sticky bottom-0 bg-gray-50 pt-4 pb-6 -mx-4 px-4 sm:-mx-6 sm:px-6 lg:-mx-8 lg:px-8 z-10">
+              <button
+                onClick={handleSendProposal}
+                disabled={!recipientEmail || !selectedProposal || sending}
+                className="w-full bg-blue-600 text-white py-4 rounded-lg font-medium hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2 shadow-lg disabled:shadow-none"
+              >
+                {sending ? (
+                  <>
+                    <Loader2 className="h-5 w-5 animate-spin" />
+                    Sending Email...
+                  </>
+                ) : (
+                  <>
+                    <Send className="h-5 w-5" />
+                    Send Proposal via Email
+                  </>
+                )}
+              </button>
+              
+              {/* Status Message */}
+              <div className="text-center text-xs mt-2">
+                {!recipientEmail && !selectedProposal && (
+                  <p className="text-gray-500">⚠️ Enter email and select proposal</p>
+                )}
+                {recipientEmail && selectedProposal && !sending && (
+                  <p className="text-green-600 font-medium">✅ Ready to send!</p>
+                )}
+                {sending && (
+                  <p className="text-blue-600 font-medium">📧 Generating JWT and sending email...</p>
+                )}
+              </div>
             </div>
 
             {/* Sent History */}
             {sentLinks.length > 0 && (
-              <div className="bg-white rounded-lg shadow-md p-6 border border-gray-200">
+              <div className="bg-white rounded-lg shadow-md p-6 border border-gray-200 mb-32">
                 <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center justify-between">
                   <span className="flex items-center gap-2">
                     <Clock className="w-5 h-5 text-green-600" />
