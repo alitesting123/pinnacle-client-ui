@@ -1,7 +1,12 @@
-// src/pages/ProposalView.tsx - CREATE THIS NEW FILE
+// src/pages/ProposalView.tsx - COMPLETE JWT-BASED IMPLEMENTATION
 /**
- * Unified Proposal View - handles JWT token access
- * Replaces: SecureProposal.tsx and TempAccess.tsx
+ * Unified Proposal View Component
+ * Handles JWT token-based temporary access
+ * 
+ * Flow:
+ * 1. Extract token from URL query params
+ * 2. Validate JWT with backend (single API call)
+ * 3. Display proposal or show error
  */
 
 import { useEffect, useState } from "react";
@@ -10,21 +15,45 @@ import { ProposalDashboard } from "@/components/ProposalDashboard";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Loader2, AlertCircle, Clock, Shield } from "lucide-react";
+import { Loader2, AlertCircle, Clock, Shield, CheckCircle, Lock, Mail } from "lucide-react";
 import type { ProposalData } from "@/types/proposal";
 
+// ============================================================================
+// INTERFACES
+// ============================================================================
+
+interface TokenInfo {
+  recipient_email?: string;
+  expires_at?: string;
+  issued_at?: string;
+  proposal_id?: string;
+  job_number?: string;
+}
+
+// ============================================================================
+// MAIN COMPONENT
+// ============================================================================
+
 const ProposalView = () => {
+  // Router hooks
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
+  
+  // Get token from URL
   const token = searchParams.get('token');
   
+  // State
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [proposalData, setProposalData] = useState<ProposalData | null>(null);
-  const [accessInfo, setAccessInfo] = useState<any>(null);
+  const [tokenInfo, setTokenInfo] = useState<TokenInfo | null>(null);
 
-  // ✅ Get API base URL
+  // API base URL
   const API_BASE = import.meta.env.VITE_API_BASE_URL || 'https://dlndpgwc2naup.cloudfront.net';
+
+  // ============================================================================
+  // LOAD PROPOSAL ON MOUNT
+  // ============================================================================
 
   useEffect(() => {
     if (!token) {
@@ -36,13 +65,19 @@ const ProposalView = () => {
     loadProposal();
   }, [token]);
 
+  // ============================================================================
+  // LOAD PROPOSAL FUNCTION
+  // ============================================================================
+
   const loadProposal = async () => {
     try {
       setLoading(true);
       setError(null);
       
-      console.log('🔐 Accessing proposal with JWT token...');
+      console.log('🔐 Validating JWT token...');
+      console.log('Token (first 20 chars):', token?.substring(0, 20) + '...');
       
+      // ✅ SINGLE API CALL - JWT validation + proposal data
       const response = await fetch(`${API_BASE}/api/v1/proposal/access/${token}`, {
         method: 'GET',
         headers: {
@@ -53,36 +88,48 @@ const ProposalView = () => {
 
       console.log('📡 Response status:', response.status);
 
+      // Handle different error scenarios
       if (!response.ok) {
-        const errorData = await response.json().catch(() => ({ 
-          detail: response.status === 410 ? 'Link expired' : 'Access denied' 
-        }));
-        throw new Error(errorData.detail || 'Failed to access proposal');
+        if (response.status === 410) {
+          throw new Error('This access link has expired. Please request a new link from your Pinnacle Live representative.');
+        } else if (response.status === 401) {
+          throw new Error('Invalid access token. Please check your email for the correct link.');
+        } else if (response.status === 404) {
+          throw new Error('Proposal not found. The proposal may have been removed or is no longer available.');
+        } else {
+          const errorData = await response.json().catch(() => ({ detail: 'Failed to access proposal' }));
+          throw new Error(errorData.detail || 'Failed to access proposal');
+        }
       }
 
       const data = await response.json();
-      console.log('✅ Proposal data loaded');
+      console.log('✅ Proposal loaded successfully');
+      console.log('Proposal ID:', data.eventDetails?.jobNumber);
       
-      // Extract access token info if provided
-      const { access_token_info, ...proposal } = data;
+      // Extract token info if provided by backend
+      if (data.access_token_info) {
+        setTokenInfo(data.access_token_info);
+      }
       
-      setProposalData(proposal);
-      setAccessInfo(access_token_info);
+      setProposalData(data);
       
     } catch (err) {
       console.error('❌ Failed to load proposal:', err);
-      setError(err instanceof Error ? err.message : 'Failed to load proposal');
+      setError(err instanceof Error ? err.message : 'An unexpected error occurred');
     } finally {
       setLoading(false);
     }
   };
 
-  // Calculate time remaining
+  // ============================================================================
+  // CALCULATE TIME REMAINING
+  // ============================================================================
+
   const getTimeRemaining = () => {
-    if (!accessInfo?.expires_at) return null;
+    if (!tokenInfo?.expires_at) return null;
     
     const now = new Date();
-    const expires = new Date(accessInfo.expires_at);
+    const expires = new Date(tokenInfo.expires_at);
     const diffMs = expires.getTime() - now.getTime();
     
     if (diffMs <= 0) return "Expired";
@@ -96,103 +143,196 @@ const ProposalView = () => {
     return `${minutes}m remaining`;
   };
 
-  // Loading State
+  // ============================================================================
+  // LOADING STATE
+  // ============================================================================
+  
   if (loading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <Card className="max-w-md w-full p-8 text-center space-y-4">
-          <Loader2 className="h-8 w-8 animate-spin mx-auto text-primary" />
-          <h2 className="text-xl font-semibold">Loading Proposal</h2>
-          <p className="text-muted-foreground">
-            Verifying your access token...
-          </p>
+          <div className="relative">
+            <Loader2 className="h-12 w-12 animate-spin mx-auto text-primary" />
+            <Shield className="h-6 w-6 absolute top-3 left-1/2 -translate-x-1/2 text-primary-foreground" />
+          </div>
+          
+          <div>
+            <h2 className="text-xl font-semibold text-foreground mb-2">
+              Validating Access
+            </h2>
+            <p className="text-muted-foreground text-sm">
+              Verifying your secure access token...
+            </p>
+          </div>
+          
+          <div className="pt-4 border-t border-border">
+            <div className="flex items-center justify-center gap-2 text-xs text-muted-foreground">
+              <Lock className="h-3 w-3" />
+              <span>Encrypted JWT validation in progress</span>
+            </div>
+          </div>
         </Card>
       </div>
     );
   }
 
-  // Error State
+  // ============================================================================
+  // ERROR STATE
+  // ============================================================================
+  
   if (error) {
     const isExpired = error.toLowerCase().includes('expired');
+    const isInvalid = error.toLowerCase().includes('invalid');
+    const isNotFound = error.toLowerCase().includes('not found');
     
     return (
       <div className="min-h-screen bg-background flex items-center justify-center p-6">
-        <Card className="max-w-md w-full p-8 text-center space-y-4">
-          <AlertCircle className="h-12 w-12 text-destructive mx-auto" />
-          <h2 className="text-xl font-semibold text-foreground">
-            {isExpired ? 'Access Link Expired' : 'Access Denied'}
-          </h2>
-          <p className="text-muted-foreground">{error}</p>
+        <Card className="max-w-lg w-full p-8 text-center space-y-6">
+          {/* Error Icon */}
+          <div className="relative mx-auto w-16 h-16">
+            <div className={`absolute inset-0 rounded-full ${
+              isExpired ? 'bg-orange-100' : 'bg-red-100'
+            } flex items-center justify-center`}>
+              {isExpired ? (
+                <Clock className="h-8 w-8 text-orange-600" />
+              ) : (
+                <AlertCircle className="h-8 w-8 text-destructive" />
+              )}
+            </div>
+          </div>
           
-          <div className="pt-4 text-xs text-muted-foreground space-y-2">
-            {isExpired ? (
-              <>
-                <p>This proposal link has expired.</p>
-                <p>Please contact your Pinnacle Live representative for a new access link.</p>
-              </>
-            ) : (
-              <>
-                <p>Unable to access this proposal.</p>
-                <p>Please check your email for the correct link or contact support.</p>
-              </>
+          {/* Error Message */}
+          <div>
+            <h2 className="text-2xl font-semibold text-foreground mb-2">
+              {isExpired && 'Access Link Expired'}
+              {isInvalid && 'Invalid Access Link'}
+              {isNotFound && 'Proposal Not Found'}
+              {!isExpired && !isInvalid && !isNotFound && 'Access Denied'}
+            </h2>
+            <p className="text-muted-foreground">{error}</p>
+          </div>
+          
+          {/* Helpful Information */}
+          <div className="bg-secondary/30 p-4 rounded-lg text-left space-y-2">
+            <div className="flex items-start gap-2 text-sm">
+              <Mail className="h-4 w-4 text-primary mt-0.5 flex-shrink-0" />
+              <div>
+                <p className="font-medium text-foreground">Need a new link?</p>
+                <p className="text-muted-foreground text-xs mt-1">
+                  Contact your Pinnacle Live representative to request a new secure access link.
+                </p>
+              </div>
+            </div>
+            
+            {isExpired && (
+              <div className="flex items-start gap-2 text-sm pt-2 border-t border-border">
+                <Clock className="h-4 w-4 text-muted-foreground mt-0.5 flex-shrink-0" />
+                <div>
+                  <p className="text-muted-foreground text-xs">
+                    Secure links expire 24 hours after first access for your security.
+                  </p>
+                </div>
+              </div>
             )}
           </div>
           
-          <Button onClick={() => navigate('/')} className="w-full">
-            Return to Home
+          {/* Actions */}
+          <div className="space-y-2">
+            <Button 
+              onClick={() => navigate('/')} 
+              className="w-full"
+              size="lg"
+            >
+              Return to Home
+            </Button>
+            
+            <p className="text-xs text-muted-foreground">
+              Questions? Email{' '}
+              <a 
+                href="mailto:support@pinnaclelive.com" 
+                className="text-primary hover:underline"
+              >
+                support@pinnaclelive.com
+              </a>
+            </p>
+          </div>
+        </Card>
+      </div>
+    );
+  }
+
+  // ============================================================================
+  // NO DATA STATE
+  // ============================================================================
+  
+  if (!proposalData) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <Card className="max-w-md w-full p-8 text-center space-y-4">
+          <AlertCircle className="h-12 w-12 text-warning mx-auto" />
+          <div>
+            <h2 className="text-lg font-semibold text-foreground mb-2">
+              No Proposal Data
+            </h2>
+            <p className="text-muted-foreground text-sm">
+              Unable to load proposal information. Please try again or contact support.
+            </p>
+          </div>
+          <Button onClick={() => window.location.reload()} variant="outline" className="w-full">
+            Reload Page
           </Button>
         </Card>
       </div>
     );
   }
 
-  // No Data State
-  if (!proposalData) {
-    return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <Card className="max-w-md w-full p-8 text-center">
-          <p className="text-muted-foreground">No proposal data available</p>
-        </Card>
-      </div>
-    );
-  }
-
-  // Success - Show Proposal
+  // ============================================================================
+  // SUCCESS - SHOW PROPOSAL
+  // ============================================================================
+  
+  const timeRemaining = getTimeRemaining();
+  const recipientEmail = tokenInfo?.recipient_email || searchParams.get('email') || 'Guest';
+  
   return (
     <div className="min-h-screen bg-background">
       
-      {/* Access Info Banner */}
-      {accessInfo && (
-        <div className="bg-blue-50 border-b border-blue-200 sticky top-0 z-40">
-          <div className="container mx-auto px-6 py-3">
-            <div className="flex items-center justify-between text-sm flex-wrap gap-2">
+      {/* ============================================================================ */}
+      {/* SECURE ACCESS BANNER */}
+      {/* ============================================================================ */}
+      
+      <div className="bg-gradient-to-r from-green-50 to-emerald-50 border-b border-green-200 sticky top-0 z-40 shadow-sm">
+        <div className="container mx-auto px-6 py-3">
+          <div className="flex items-center justify-between text-sm flex-wrap gap-3">
+            
+            {/* Left: Access Info */}
+            <div className="flex items-center gap-4">
+              <Badge className="bg-green-600 text-white hover:bg-green-700 shadow-sm">
+                <Shield className="h-3 w-3 mr-1" />
+                Secure Access
+              </Badge>
               
-              <div className="flex items-center gap-4">
-                <Badge className="bg-blue-500 text-white hover:bg-blue-600">
-                  <Shield className="h-3 w-3 mr-1" />
-                  Secure Access
-                </Badge>
-                
-                {accessInfo.recipient_email && (
-                  <span className="text-blue-800 font-medium">
-                    {accessInfo.recipient_email}
-                  </span>
-                )}
+              <div className="flex items-center gap-2 text-green-800">
+                <CheckCircle className="h-4 w-4" />
+                <span className="font-medium">{recipientEmail}</span>
               </div>
-              
-              <div className="flex items-center gap-2">
-                <Clock className="h-4 w-4 text-blue-600" />
-                <span className="font-semibold text-blue-800">
-                  {getTimeRemaining()}
-                </span>
-              </div>
-              
             </div>
+            
+            {/* Right: Expiration Info */}
+            <div className="flex items-center gap-2">
+              <Clock className="h-4 w-4 text-green-700" />
+              <span className="font-semibold text-green-700">
+                {timeRemaining || 'Valid for 24 hours'}
+              </span>
+            </div>
+            
           </div>
         </div>
-      )}
+      </div>
 
-      {/* Proposal Dashboard */}
+      {/* ============================================================================ */}
+      {/* PROPOSAL DASHBOARD */}
+      {/* ============================================================================ */}
+      
       <ProposalDashboard proposalData={proposalData} />
       
     </div>

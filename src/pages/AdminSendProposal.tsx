@@ -1,7 +1,21 @@
-// src/pages/AdminSendProposal.tsx - UPDATE API ENDPOINT
+// src/pages/AdminSendProposal.tsx - COMPLETE JWT IMPLEMENTATION
+/**
+ * Admin Interface for Sending Proposal Links
+ * 
+ * Features:
+ * - Send JWT-secured proposal links to any email
+ * - Select from database proposals
+ * - Configure expiration time
+ * - Track sent links
+ * - Email preview
+ */
 
 import React, { useState, useEffect } from 'react';
-import { Send, Users, FileText, Check, AlertCircle, Loader2, Mail, Clock, Copy } from 'lucide-react';
+import { Send, Users, FileText, Check, AlertCircle, Loader2, Mail, Clock, Copy, ExternalLink, Award, Shield } from 'lucide-react';
+
+// ============================================================================
+// INTERFACES
+// ============================================================================
 
 interface Client {
   id: string;
@@ -26,32 +40,66 @@ interface SentLink {
   proposal: Proposal;
   url: string;
   sentAt: string;
+  expiresAt?: string;
 }
 
+interface SendProposalResponse {
+  message: string;
+  temp_url: string;
+  expires_at: string;
+  proposal_info: {
+    job_number: string;
+    client_name: string;
+    total_cost: number;
+    venue: string;
+  };
+}
+
+// ============================================================================
+// MAIN COMPONENT
+// ============================================================================
+
 const AdminSendProposal = () => {
-  // ✅ UPDATED API BASE
+  // ✅ API BASE URL - Uses CloudFront in production
   const API_BASE = import.meta.env.VITE_API_BASE_URL || 'https://dlndpgwc2naup.cloudfront.net';
 
+  // ============================================================================
+  // STATE MANAGEMENT
+  // ============================================================================
+  
   const [clients, setClients] = useState<Client[]>([]);
   const [proposals, setProposals] = useState<Proposal[]>([]);
   const [loading, setLoading] = useState(true);
   const [sending, setSending] = useState(false);
   
+  // Form state
   const [selectedProposal, setSelectedProposal] = useState<Proposal | null>(null);
   const [recipientEmail, setRecipientEmail] = useState('');
   const [durationHours, setDurationHours] = useState(24);
   
+  // Notification state
   const [notification, setNotification] = useState<{message: string, type: 'success' | 'error'} | null>(null);
+  
+  // Sent links history
   const [sentLinks, setSentLinks] = useState<SentLink[]>([]);
+
+  // ============================================================================
+  // LOAD DATA ON MOUNT
+  // ============================================================================
 
   useEffect(() => {
     loadData();
   }, []);
 
+  // ============================================================================
+  // LOAD CLIENTS AND PROPOSALS
+  // ============================================================================
+
   const loadData = async () => {
     try {
       setLoading(true);
       
+      // Load approved users and proposals in parallel
       const [clientsRes, proposalsRes] = await Promise.all([
         fetch(`${API_BASE}/api/v1/admin/approved-users`),
         fetch(`${API_BASE}/api/v1/proposals`)
@@ -60,14 +108,18 @@ const AdminSendProposal = () => {
       const clientsData = await clientsRes.json();
       const proposalsData = await proposalsRes.json();
       
+      // Filter for client role users
       const clientUsers = Array.isArray(clientsData) 
         ? clientsData.filter((user: Client) => user.roles.includes('client'))
         : [];
       
       setClients(clientUsers);
       
+      // Extract proposals array
       const proposalsList = proposalsData.proposals || proposalsData || [];
       setProposals(Array.isArray(proposalsList) ? proposalsList : []);
+      
+      console.log('✅ Loaded:', clientUsers.length, 'clients and', proposalsList.length, 'proposals');
       
     } catch (error) {
       showNotification('Failed to load data', 'error');
@@ -77,10 +129,18 @@ const AdminSendProposal = () => {
     }
   };
 
+  // ============================================================================
+  // NOTIFICATION HELPER
+  // ============================================================================
+
   const showNotification = (message: string, type: 'success' | 'error' = 'success') => {
     setNotification({ message, type });
     setTimeout(() => setNotification(null), 5000);
   };
+
+  // ============================================================================
+  // SEND PROPOSAL (MAIN FUNCTION)
+  // ============================================================================
 
   const handleSendProposal = async () => {
     if (!recipientEmail || !selectedProposal) {
@@ -88,12 +148,13 @@ const AdminSendProposal = () => {
       return;
     }
 
-    console.log('🔍 Sending to:', recipientEmail);
+    console.log('📧 Sending proposal to:', recipientEmail);
+    console.log('📄 Proposal:', selectedProposal.job_number);
 
     setSending(true);
     
     try {
-      // ✅ NEW API ENDPOINT
+      // ✅ NEW JWT-BASED API ENDPOINT
       const response = await fetch(`${API_BASE}/api/v1/admin/send-proposal`, {
         method: 'POST',
         headers: {
@@ -111,7 +172,11 @@ const AdminSendProposal = () => {
         throw new Error(error.detail || 'Failed to send proposal');
       }
 
-      const data = await response.json();
+      const data: SendProposalResponse = await response.json();
+      
+      console.log('✅ Email sent successfully!');
+      console.log('🔗 Access URL:', data.temp_url);
+      console.log('⏰ Expires:', data.expires_at);
       
       showNotification(data.message, 'success');
       
@@ -120,14 +185,15 @@ const AdminSendProposal = () => {
         client: {
           id: 'manual',
           email: recipientEmail,
-          full_name: recipientEmail.split('@')[0],
+          full_name: recipientEmail.split('@')[0].replace(/[._]/g, ' ').replace(/\b\w/g, l => l.toUpperCase()),
           company: data.proposal_info?.client_name || 'Manual Entry',
           roles: ['client'],
           is_active: true
         },
         proposal: selectedProposal,
         url: data.temp_url,
-        sentAt: new Date().toISOString()
+        sentAt: new Date().toISOString(),
+        expiresAt: data.expires_at
       }, ...prev]);
       
       // Reset form
@@ -136,15 +202,24 @@ const AdminSendProposal = () => {
       
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Failed to send proposal';
+      console.error('❌ Send failed:', errorMessage);
       showNotification(errorMessage, 'error');
     } finally {
       setSending(false);
     }
   };
 
+  // ============================================================================
+  // HELPER FUNCTIONS
+  // ============================================================================
+
   const copyToClipboard = (text: string) => {
     navigator.clipboard.writeText(text);
     showNotification('Link copied to clipboard!', 'success');
+  };
+
+  const openLink = (url: string) => {
+    window.open(url, '_blank');
   };
 
   const formatCurrency = (amount: number) => {
@@ -155,28 +230,50 @@ const AdminSendProposal = () => {
     }).format(amount);
   };
 
+  const quickFillFromClient = (client: Client) => {
+    setRecipientEmail(client.email);
+  };
+
+  // ============================================================================
+  // LOADING STATE
+  // ============================================================================
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
           <Loader2 className="h-12 w-12 text-blue-600 mx-auto mb-4 animate-spin" />
-          <p className="text-gray-600">Loading...</p>
+          <p className="text-gray-600">Loading admin dashboard...</p>
         </div>
       </div>
     );
   }
 
+  // ============================================================================
+  // MAIN RENDER
+  // ============================================================================
+
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <div className="bg-white border-b border-gray-200">
+      
+      {/* ============================================================================ */}
+      {/* HEADER */}
+      {/* ============================================================================ */}
+      
+      <div className="bg-white border-b border-gray-200 shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
           <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-3xl font-bold text-gray-900">Send Proposal to Client</h1>
-              <p className="text-gray-600 mt-1">Generate and email secure proposal links (JWT-based)</p>
+            <div className="flex items-center gap-4">
+              <div className="p-3 bg-blue-100 rounded-lg">
+                <Send className="h-6 w-6 text-blue-600" />
+              </div>
+              <div>
+                <h1 className="text-3xl font-bold text-gray-900">Send Proposal to Client</h1>
+                <p className="text-gray-600 mt-1">Generate and email secure JWT-based proposal links</p>
+              </div>
             </div>
-            <div className="flex gap-4">
+            
+            <div className="flex gap-6">
               <div className="text-right">
                 <div className="text-sm text-gray-500">Clients</div>
                 <div className="text-2xl font-bold text-blue-600">{clients.length}</div>
@@ -185,38 +282,52 @@ const AdminSendProposal = () => {
                 <div className="text-sm text-gray-500">Proposals</div>
                 <div className="text-2xl font-bold text-green-600">{proposals.length}</div>
               </div>
+              <div className="text-right">
+                <div className="text-sm text-gray-500">Sent Today</div>
+                <div className="text-2xl font-bold text-purple-600">{sentLinks.length}</div>
+              </div>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Notification */}
+      {/* ============================================================================ */}
+      {/* NOTIFICATION */}
+      {/* ============================================================================ */}
+      
       {notification && (
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4">
-          <div className={`rounded-lg p-4 ${
+          <div className={`rounded-lg p-4 shadow-md ${
             notification.type === 'success' ? 'bg-green-50 text-green-800 border border-green-200' : 
             'bg-red-50 text-red-800 border border-red-200'
           }`}>
             <div className="flex items-center gap-2">
-              {notification.type === 'success' ? 
-                <Check className="w-5 h-5" /> : 
+              {notification.type === 'success' ? (
+                <Check className="w-5 h-5" />
+              ) : (
                 <AlertCircle className="w-5 h-5" />
-              }
-              <span>{notification.message}</span>
+              )}
+              <span className="font-medium">{notification.message}</span>
             </div>
           </div>
         </div>
       )}
 
-      {/* Main Content */}
+      {/* ============================================================================ */}
+      {/* MAIN CONTENT */}
+      {/* ============================================================================ */}
+      
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           
-          {/* Left Column - Form */}
+          {/* ============================================================================ */}
+          {/* LEFT COLUMN - FORM */}
+          {/* ============================================================================ */}
+          
           <div className="space-y-6">
             
-            {/* Instructions */}
-            <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg shadow p-6 border border-blue-200">
+            {/* Instructions Card */}
+            <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg shadow-sm p-6 border border-blue-200">
               <h3 className="font-semibold text-gray-900 mb-3 flex items-center gap-2">
                 <Mail className="w-5 h-5 text-blue-600" />
                 How to Send (JWT Method)
@@ -239,10 +350,13 @@ const AdminSendProposal = () => {
                   <span>Click "Send Proposal via Email"</span>
                 </li>
               </ol>
-              <div className="mt-3 pt-3 border-t border-blue-200">
-                <p className="text-xs text-gray-600">
-                  🔐 <strong>JWT Secured:</strong> Links are cryptographically signed and auto-expire
-                </p>
+              <div className="mt-4 pt-4 border-t border-blue-200">
+                <div className="flex items-start gap-2">
+                  <Shield className="h-4 w-4 text-blue-600 mt-0.5 flex-shrink-0" />
+                  <p className="text-xs text-gray-600">
+                    <strong>JWT Secured:</strong> Links are cryptographically signed, stateless, and auto-expire. No database storage required.
+                  </p>
+                </div>
               </div>
             </div>
 
@@ -257,23 +371,25 @@ const AdminSendProposal = () => {
               <input
                 type="email"
                 value={recipientEmail}
-                onChange={(e) => {
-                  setRecipientEmail(e.target.value);
-                }}
-                placeholder="Enter recipient email (e.g., betterandbliss@gmail.com)"
+                onChange={(e) => setRecipientEmail(e.target.value)}
+                placeholder="Enter recipient email (e.g., client@company.com)"
                 className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-base"
               />
+              <p className="text-xs text-gray-500 mt-2">
+                Email will be sent from: <strong className="text-gray-700">ifthicaralikhan@gmail.com</strong>
+              </p>
             </div>
 
             {/* Duration Selector */}
-            <div className="bg-white rounded-lg shadow p-6">
-              <label className="block text-sm font-semibold text-gray-900 mb-3">
+            <div className="bg-white rounded-lg shadow-sm p-6 border border-gray-200">
+              <label className="block text-sm font-semibold text-gray-900 mb-3 flex items-center gap-2">
+                <Clock className="w-4 h-4 text-gray-600" />
                 Link Expiration
               </label>
               <select
                 value={durationHours}
                 onChange={(e) => setDurationHours(Number(e.target.value))}
-                className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 text-base"
               >
                 <option value={1}>1 hour</option>
                 <option value={6}>6 hours</option>
@@ -286,9 +402,10 @@ const AdminSendProposal = () => {
             </div>
 
             {/* Quick Select from Clients */}
-            <div className="bg-white rounded-lg shadow p-6">
+            <div className="bg-white rounded-lg shadow-sm p-6 border border-gray-200">
               <div className="flex items-center justify-between mb-3">
-                <label className="block text-sm font-semibold text-gray-900">
+                <label className="block text-sm font-semibold text-gray-900 flex items-center gap-2">
+                  <Users className="w-4 h-4 text-gray-600" />
                   Quick Fill from Client List
                 </label>
                 <span className="text-xs text-gray-500">(Optional)</span>
@@ -303,7 +420,7 @@ const AdminSendProposal = () => {
                   clients.map((client) => (
                     <button
                       key={client.id}
-                      onClick={() => setRecipientEmail(client.email)}
+                      onClick={() => quickFillFromClient(client)}
                       className="w-full text-left p-3 rounded-lg border-2 border-gray-200 hover:border-blue-300 hover:bg-blue-50 transition-all"
                     >
                       <div className="font-medium text-sm text-gray-900">{client.full_name}</div>
@@ -318,8 +435,9 @@ const AdminSendProposal = () => {
             </div>
 
             {/* Select Proposal */}
-            <div className="bg-white rounded-lg shadow p-6">
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+            <div className="bg-white rounded-lg shadow-sm p-6 border border-gray-200">
+              <label className="block text-sm font-semibold text-gray-900 mb-3 flex items-center gap-2">
+                <FileText className="w-4 h-4 text-gray-600" />
                 Select Proposal (Job) *
               </label>
               <div className="max-h-64 overflow-y-auto space-y-2">
@@ -335,8 +453,8 @@ const AdminSendProposal = () => {
                       onClick={() => setSelectedProposal(proposal)}
                       className={`w-full text-left p-4 rounded-lg border-2 transition-all ${
                         selectedProposal?.id === proposal.id
-                          ? 'border-blue-500 bg-blue-50'
-                          : 'border-gray-200 hover:border-gray-300'
+                          ? 'border-blue-500 bg-blue-50 shadow-md'
+                          : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
                       }`}
                     >
                       <div className="flex items-start justify-between">
@@ -370,12 +488,18 @@ const AdminSendProposal = () => {
             </div>
           </div>
 
-          {/* Right Column - Preview & Send */}
+          {/* ============================================================================ */}
+          {/* RIGHT COLUMN - PREVIEW & SEND */}
+          {/* ============================================================================ */}
+          
           <div className="space-y-6">
             
-            {/* Preview */}
-            <div className="bg-white rounded-lg shadow p-6">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">Preview Email</h3>
+            {/* Preview Card */}
+            <div className="bg-white rounded-lg shadow-md p-6 border border-gray-200 sticky top-6">
+              <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                <Mail className="w-5 h-5 text-blue-600" />
+                Email Preview
+              </h3>
               
               {!selectedProposal ? (
                 <div className="text-center py-12 text-gray-400">
@@ -385,16 +509,18 @@ const AdminSendProposal = () => {
               ) : (
                 <div className="space-y-4">
                   
+                  {/* Recipient Info */}
                   {recipientEmail && (
                     <div className="p-4 bg-blue-50 rounded-lg border-2 border-blue-300">
                       <div className="text-sm text-gray-600 mb-1">📧 Email will be sent to:</div>
-                      <div className="font-bold text-gray-900 text-lg">
+                      <div className="font-bold text-gray-900 text-lg break-all">
                         {recipientEmail}
                       </div>
                     </div>
                   )}
                   
-                  <div className="p-4 bg-green-50 rounded-lg">
+                  {/* Proposal Info */}
+                  <div className="p-4 bg-green-50 rounded-lg border border-green-200">
                     <div className="text-sm text-gray-600 mb-1">📄 Proposal:</div>
                     <div className="font-bold text-gray-900 text-lg">
                       Job #{selectedProposal.job_number}
@@ -402,11 +528,15 @@ const AdminSendProposal = () => {
                     <div className="text-sm text-gray-700 mt-1">
                       {selectedProposal.client_name}
                     </div>
+                    <div className="text-xs text-gray-500 mt-1">
+                      {selectedProposal.venue}
+                    </div>
                     <div className="text-lg font-bold text-green-700 mt-2">
                       {formatCurrency(selectedProposal.total_cost)}
                     </div>
                   </div>
                   
+                  {/* Security Info */}
                   <div className="p-4 bg-purple-50 rounded-lg border border-purple-200">
                     <div className="flex items-start gap-2">
                       <Clock className="w-5 h-5 text-purple-600 flex-shrink-0 mt-0.5" />
@@ -420,7 +550,22 @@ const AdminSendProposal = () => {
                         <div className="text-xs text-purple-600 mt-1">
                           Cryptographically signed - cannot be modified
                         </div>
+                        <div className="text-xs text-purple-600 mt-1">
+                          No database storage - stateless validation
+                        </div>
                       </div>
+                    </div>
+                  </div>
+                  
+                  {/* Email Template Preview */}
+                  <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
+                    <div className="text-xs font-medium text-gray-600 mb-2">📨 Email Content:</div>
+                    <div className="text-xs text-gray-700 space-y-1">
+                      <p>✉️ Subject: <span className="font-medium">Pinnacle Live Proposal #{selectedProposal.job_number}</span></p>
+                      <p>👤 From: <span className="font-medium">Pinnacle Live Team</span></p>
+                      <p>🎨 Design: Professional white theme with branding</p>
+                      <p>🔗 CTA: "VIEW PROPOSAL" button with JWT link</p>
+                      <p>📋 Includes: Summary, security notice, company footer</p>
                     </div>
                   </div>
                 </div>
@@ -431,7 +576,7 @@ const AdminSendProposal = () => {
             <button
               onClick={handleSendProposal}
               disabled={!recipientEmail || !selectedProposal || sending}
-              className="w-full bg-blue-600 text-white py-4 rounded-lg font-medium hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2"
+              className="w-full bg-blue-600 text-white py-4 rounded-lg font-medium hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2 shadow-md disabled:shadow-none"
             >
               {sending ? (
                 <>
@@ -446,38 +591,67 @@ const AdminSendProposal = () => {
               )}
             </button>
             
-            <div className="text-center text-xs text-gray-500">
+            {/* Status Message */}
+            <div className="text-center text-xs">
               {!recipientEmail && !selectedProposal && (
-                <p>⚠️ Enter email and select proposal</p>
+                <p className="text-gray-500">⚠️ Enter email and select proposal</p>
               )}
-              {recipientEmail && selectedProposal && (
-                <p>✅ Ready to send!</p>
+              {recipientEmail && selectedProposal && !sending && (
+                <p className="text-green-600 font-medium">✅ Ready to send!</p>
+              )}
+              {sending && (
+                <p className="text-blue-600 font-medium">📧 Generating JWT and sending email...</p>
               )}
             </div>
 
             {/* Sent History */}
             {sentLinks.length > 0 && (
-              <div className="bg-white rounded-lg shadow p-6">
-                <h3 className="text-lg font-semibold text-gray-900 mb-4">
-                  Recently Sent ({sentLinks.length})
+              <div className="bg-white rounded-lg shadow-md p-6 border border-gray-200">
+                <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center justify-between">
+                  <span className="flex items-center gap-2">
+                    <Clock className="w-5 h-5 text-green-600" />
+                    Recently Sent
+                  </span>
+                  <span className="text-sm text-gray-500">({sentLinks.length})</span>
                 </h3>
-                <div className="space-y-3">
-                  {sentLinks.slice(0, 3).map((link, index) => (
-                    <div key={index} className="p-3 bg-gray-50 rounded border border-gray-200">
+                <div className="space-y-3 max-h-80 overflow-y-auto">
+                  {sentLinks.map((link, index) => (
+                    <div key={index} className="p-4 bg-gray-50 rounded-lg border border-gray-200 hover:bg-gray-100 transition-colors">
                       <div className="flex items-start justify-between mb-2">
-                        <div>
-                          <div className="font-medium text-sm text-blue-600">{link.client.email}</div>
-                          <div className="text-xs text-gray-500">Job #{link.proposal.job_number}</div>
+                        <div className="flex-1">
+                          <div className="font-medium text-sm text-blue-600 break-all">
+                            {link.client.email}
+                          </div>
+                          <div className="text-xs text-gray-500 mt-1">
+                            Job #{link.proposal.job_number} • {link.proposal.client_name}
+                          </div>
                         </div>
-                        <button
-                          onClick={() => copyToClipboard(link.url)}
-                          className="text-blue-600 hover:text-blue-800"
-                        >
-                          <Copy className="w-4 h-4" />
-                        </button>
+                        <div className="flex gap-1 ml-2">
+                          <button
+                            onClick={() => copyToClipboard(link.url)}
+                            className="p-2 text-blue-600 hover:bg-blue-100 rounded transition-colors"
+                            title="Copy link"
+                          >
+                            <Copy className="w-4 h-4" />
+                          </button>
+                          <button
+                            onClick={() => openLink(link.url)}
+                            className="p-2 text-green-600 hover:bg-green-100 rounded transition-colors"
+                            title="Open link"
+                          >
+                            <ExternalLink className="w-4 h-4" />
+                          </button>
+                        </div>
                       </div>
-                      <div className="text-xs text-gray-500">
-                        Sent: {new Date(link.sentAt).toLocaleString()}
+                      <div className="text-xs text-gray-500 flex items-center justify-between">
+                        <span>
+                          📅 Sent: {new Date(link.sentAt).toLocaleString()}
+                        </span>
+                        {link.expiresAt && (
+                          <span>
+                            ⏰ Expires: {new Date(link.expiresAt).toLocaleString()}
+                          </span>
+                        )}
                       </div>
                     </div>
                   ))}
