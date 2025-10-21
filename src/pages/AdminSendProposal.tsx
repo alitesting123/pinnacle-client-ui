@@ -402,7 +402,7 @@ const AdminSendProposal = () => {
             </div>
 
             {/* Quick Select from Clients */}
-            <div className="bg-white rounded-lg shadow-sm p-6 border border-gray-200">
+            {/* <div className="bg-white rounded-lg shadow-sm p-6 border border-gray-200">
               <div className="flex items-center justify-between mb-3">
                 <label className="block text-sm font-semibold text-gray-900 flex items-center gap-2">
                   <Users className="w-4 h-4 text-gray-600" />
@@ -432,7 +432,7 @@ const AdminSendProposal = () => {
                   ))
                 )}
               </div>
-            </div>
+            </div> */}
 
             {/* Select Proposal */}
             <div className="bg-white rounded-lg shadow-sm p-6 border border-gray-200">
