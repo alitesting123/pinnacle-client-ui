@@ -269,7 +269,7 @@ const AdminSendProposal = () => {
               </div>
               <div>
                 <h1 className="text-3xl font-bold text-gray-900">Test Admin Page</h1>
-                <p className="text-gray-600 mt-1">Send a test email to your application </p>
+                <p className="text-gray-600 mt-1">Send a test proposal to your email </p>
               </div>
             </div>
             
