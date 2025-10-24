@@ -66,15 +66,20 @@ export interface ChatMessage {
   attachments?: string[];
 }
 
+// Updated Suggestion interface for product recommendations
 export interface Suggestion {
   id: string;
-  type: 'cost-optimization' | 'alternative' | 'upgrade';
+  type: 'upgrade' | 'add-on' | 'bundle' | 'premium';
   title: string;
   description: string;
-  originalCost: number;
-  suggestedCost: number;
-  savings: number;
+  productName: string;
+  category: string;
+  features: string[];
+  price: number;
+  image?: string;
   confidence: 'low' | 'medium' | 'high';
+  compatibility?: string; // What it works with
+  benefits: string[]; // Why the customer would want this
 }
 
 export interface QuestionReply {

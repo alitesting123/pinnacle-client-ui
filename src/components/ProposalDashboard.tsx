@@ -11,10 +11,10 @@ import { TimelineView } from "./TimelineView";
 import { QuestionsPanel } from "./QuestionsPanel";
 import { SuggestionPanel } from "./SuggestionPanel";
 import { QuestionModal } from "./QuestionModal";
-import { SignatureModal } from "./SignatureModal";
-import { ProposalData, ProposalItem, EquipmentQuestionData } from "@/types/proposal";
+import { ConfirmationModal } from "./ConfirmationModal";
+import { ProposalData, ProposalItem, ProposalSection as ProposalSectionType, EquipmentQuestionData, Suggestion } from "@/types/proposal";
 import { toast } from "@/hooks/use-toast";
-import { Footer } from "./Footer"; // ADD THIS IMPORT
+import { Footer } from "./Footer";
 
 interface ProposalDashboardProps {
   proposalData: ProposalData;
@@ -27,12 +27,13 @@ export function ProposalDashboard({ proposalData: initialProposalData }: Proposa
   const [questionsLoading, setQuestionsLoading] = useState(true);
   const [questionsError, setQuestionsError] = useState<string | null>(null);
   const [isQuestionModalOpen, setIsQuestionModalOpen] = useState(false);
-  const [isSignatureModalOpen, setIsSignatureModalOpen] = useState(false);
+  const [isConfirmationModalOpen, setIsConfirmationModalOpen] = useState(false);
   const [selectedItem, setSelectedItem] = useState<{ item: ProposalItem; sectionName: string } | null>(null);
-  const [signatureInfo, setSignatureInfo] = useState<{
-    signature: string;
+  const [confirmationInfo, setConfirmationInfo] = useState<{
+    confirmedBy: string;
     date: string;
   } | null>(null);
+  const [addedSuggestions, setAddedSuggestions] = useState<string[]>([]);
 
   // Get proposal ID from event details
   const proposalId = proposalData.eventDetails.jobNumber || 'default';
@@ -91,6 +92,61 @@ export function ProposalDashboard({ proposalData: initialProposalData }: Proposa
       setIsQuestionModalOpen(true);
     }
   };
+
+  const handleItemRemove = (sectionId: string, itemId: string) => {
+    const section = sections.find(s => s.id === sectionId);
+    const item = section?.items.find(i => i.id === itemId);
+    
+    if (!item || !section) return;
+
+    // Only allow removal from Additional Services section
+    if (section.title !== 'Additional Services') {
+      toast({
+        title: "Cannot Remove",
+        description: "Only items from Additional Services can be removed.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Remove from added suggestions tracking
+    setAddedSuggestions(prev => prev.filter(id => id !== itemId));
+
+    // Update total cost - subtract the item price
+    setProposalData(prev => ({
+      ...prev,
+      totalCost: (prev.totalCost || 0) - item.price,
+      pricing: {
+        totalCost: (prev.pricing?.totalCost || prev.totalCost || 0) - item.price
+      }
+    }));
+
+    // Remove item from section
+    setSections(prev => {
+      const updatedSections = prev.map(s => {
+        if (s.id === sectionId) {
+          const updatedItems = s.items.filter(i => i.id !== itemId);
+          return {
+            ...s,
+            items: updatedItems,
+            total: s.total - item.price
+          };
+        }
+        return s;
+      });
+
+      // If Additional Services section is now empty, remove it
+      return updatedSections.filter(s => 
+        s.title !== 'Additional Services' || s.items.length > 0
+      );
+    });
+
+    toast({
+      title: "Item Removed",
+      description: `${item.description} has been removed from your proposal. Total reduced by $${item.price.toLocaleString()}.`,
+    });
+  };
+
   const handleSubmitQuestion = async (question: string, itemId: string, itemName: string, sectionName: string) => {
     try {
       const response = await fetch(`/api/v1/proposals/${proposalId}/questions`, {
@@ -166,7 +222,6 @@ export function ProposalDashboard({ proposalData: initialProposalData }: Proposa
       });
     }
   };
-  
 
   const handleAnswerQuestion = async (questionId: string, answer: string) => {
     try {
@@ -205,15 +260,78 @@ export function ProposalDashboard({ proposalData: initialProposalData }: Proposa
     }
   };
 
-  const handleApplySuggestion = (suggestionId: string) => {
+  const handleApplySuggestion = (suggestion: Suggestion) => {
+    // Check if already added
+    if (addedSuggestions.includes(suggestion.id)) {
+      toast({
+        title: "Already Added",
+        description: "This product has already been added to the proposal.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Add suggestion ID to tracking list
+    setAddedSuggestions(prev => [...prev, suggestion.id]);
+
+    // Update the proposal data with the new total
+    setProposalData(prev => ({
+      ...prev,
+      totalCost: (prev.totalCost || 0) + suggestion.price,
+      pricing: {
+        totalCost: (prev.pricing?.totalCost || prev.totalCost || 0) + suggestion.price
+      }
+    }));
+
+    // Create a new section item for the suggestion
+    const newItem: ProposalItem = {
+      id: suggestion.id,
+      quantity: 1,
+      description: suggestion.productName,
+      duration: 'Event Duration',
+      price: suggestion.price,
+      discount: 0,
+      subtotal: suggestion.price,
+      category: suggestion.category,
+      notes: suggestion.description
+    };
+
+    // Find or create an "Additional Services" section
+    setSections(prev => {
+      const additionalServicesIndex = prev.findIndex(
+        section => section.title === 'Additional Services'
+      );
+
+      if (additionalServicesIndex >= 0) {
+        // Add to existing section
+        const updatedSections = [...prev];
+        updatedSections[additionalServicesIndex] = {
+          ...updatedSections[additionalServicesIndex],
+          items: [...updatedSections[additionalServicesIndex].items, newItem],
+          total: updatedSections[additionalServicesIndex].total + suggestion.price
+        };
+        return updatedSections;
+      } else {
+        // Create new section
+        const newSection: ProposalSectionType = {
+          id: 'additional-services',
+          title: 'Additional Services',
+          items: [newItem],
+          total: suggestion.price,
+          isExpanded: true
+        };
+        return [...prev, newSection];
+      }
+    });
+
     toast({
-      title: "Suggestion Applied",
-      description: "The suggestion has been applied to your proposal.",
+      title: "Product Added",
+      description: `${suggestion.productName} ($${suggestion.price.toLocaleString()}) has been added to your proposal.`,
     });
   };
 
-  const handleSignProposal = (signature: string, date: string) => {
-    setSignatureInfo({ signature, date });
+  const handleConfirmProposal = (confirmedBy: string, date: string) => {
+    setConfirmationInfo({ confirmedBy, date });
     
     // Update proposal status to confirmed
     setProposalData(prev => ({
@@ -224,11 +342,11 @@ export function ProposalDashboard({ proposalData: initialProposalData }: Proposa
       }
     }));
 
-    setIsSignatureModalOpen(false);
+    setIsConfirmationModalOpen(false);
     
     toast({
-      title: "Proposal Signed Successfully",
-      description: `${signature} signed on ${new Date(date).toLocaleDateString()}. Status updated to Confirmed.`,
+      title: "Proposal Approved",
+      description: `Approved by ${confirmedBy} on ${new Date(date).toLocaleDateString()}. Status updated to Confirmed.`,
       duration: 5000,
     });
   };
@@ -280,7 +398,7 @@ export function ProposalDashboard({ proposalData: initialProposalData }: Proposa
               {isProposalSigned && (
                 <Badge className="bg-success text-success-foreground">
                   <CheckCircle className="h-3 w-3 mr-1" />
-                  Signed
+                  Approved
                 </Badge>
               )}
             </div>
@@ -288,44 +406,18 @@ export function ProposalDashboard({ proposalData: initialProposalData }: Proposa
             <div className="flex items-center gap-3">
               {!isProposalSigned ? (
                 <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setIsSignatureModalOpen(true)}
-                  className="group relative border-2 border-dashed border-gray-300 hover:border-amber-400 hover:bg-amber-50/50 transition-all duration-300 px-6 py-3 rounded-lg"
+                  variant="default"
+                  size="default"
+                  onClick={() => setIsConfirmationModalOpen(true)}
+                  className="bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white shadow-lg"
                 >
-                  <div className="flex items-center gap-3">
-                    <svg
-                      className="h-5 w-5 text-gray-500 group-hover:text-amber-600 transition-colors"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="1.5"
-                    >
-                      <path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z" />
-                      <path d="m15 5 4 4" />
-                    </svg>
-
-                    <div className="text-left">
-                      <div className="text-sm font-medium text-gray-700 group-hover:text-amber-800 transition-colors leading-tight">
-                        Sign Proposal
-                      </div>
-                      <div className="text-xs text-gray-500 group-hover:text-amber-600 transition-colors">
-                        Digital signature
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="absolute bottom-2 left-6 right-6">
-                    <div className="h-px bg-gray-300 group-hover:bg-amber-400 transition-colors"></div>
-                    <div className="text-xs text-gray-400 group-hover:text-amber-500 transition-colors mt-1 text-center">
-                      _______________
-                    </div>
-                  </div>
+                  <CheckCircle className="h-4 w-4 mr-2" />
+                  Approve Proposal
                 </Button>
               ) : (
                 <Button variant="outline" size="sm" className="hover:bg-secondary">
-                  <Share2 className="h-4 w-4 mr-2" />
-                  Share
+                 
+                 
                 </Button>
               )}
               
@@ -343,17 +435,17 @@ export function ProposalDashboard({ proposalData: initialProposalData }: Proposa
             totalCost={totalCost}
           />
 
-          {/* Signature Info Display */}
-          {signatureInfo && (
+          {/* Confirmation Info Display */}
+          {confirmationInfo && (
             <div className="bg-success/10 border border-success/20 rounded-lg p-4">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
                   <CheckCircle className="h-5 w-5 text-success" />
                   <div>
-                    <p className="font-semibold text-success">Proposal Signed</p>
+                    <p className="font-semibold text-success">Proposal Approved</p>
                     <p className="text-sm text-muted-foreground">
-                      Signed by <span className="font-medium">{signatureInfo.signature}</span> on{' '}
-                      {new Date(signatureInfo.date).toLocaleDateString('en-US', {
+                      Approved by <span className="font-medium">{confirmationInfo.confirmedBy}</span> on{' '}
+                      {new Date(confirmationInfo.date).toLocaleDateString('en-US', {
                         year: 'numeric',
                         month: 'long',
                         day: 'numeric',
@@ -400,7 +492,7 @@ export function ProposalDashboard({ proposalData: initialProposalData }: Proposa
               {/* Section Controls */}
               <div className="flex items-center justify-between p-4 bg-secondary/30 rounded-lg">
                 <div className="flex items-center gap-4">
-                  <h3 className="font-semibold text-foreground">Prososal breakdown</h3>
+                  <h3 className="font-semibold text-foreground">Proposal breakdown</h3>
                   <Badge variant="secondary">
                     {sections.length} categories
                   </Badge>
@@ -424,6 +516,7 @@ export function ProposalDashboard({ proposalData: initialProposalData }: Proposa
                     onToggle={handleSectionToggle}
                     onItemEdit={handleItemEdit}
                     onItemQuestion={handleItemQuestion}
+                    onItemRemove={handleItemRemove}
                   />
                 ))}
               </div>
@@ -499,11 +592,11 @@ export function ProposalDashboard({ proposalData: initialProposalData }: Proposa
         onSubmitQuestion={handleSubmitQuestion}
       />
 
-      {/* Signature Modal */}
-      <SignatureModal
-        isOpen={isSignatureModalOpen}
-        onClose={() => setIsSignatureModalOpen(false)}
-        onSign={handleSignProposal}
+      {/* Confirmation Modal */}
+      <ConfirmationModal
+        isOpen={isConfirmationModalOpen}
+        onClose={() => setIsConfirmationModalOpen(false)}
+        onConfirm={handleConfirmProposal}
         proposalData={{
           jobNumber: proposalData.eventDetails.jobNumber,
           clientName: proposalData.eventDetails.clientName,
