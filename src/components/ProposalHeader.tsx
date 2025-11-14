@@ -66,8 +66,8 @@ export function ProposalHeader({ eventDetails, totalCost }: ProposalHeaderProps)
           {/* Top spacing to show background image with soft blend */}
           <div className="h-32"></div>
 
-          {/* Content area with solid white background for text readability */}
-          <div className="bg-background pt-8 pb-8 px-8">
+          {/* Content area - no solid background to allow gradient to show through */}
+          <div className="pt-8 pb-8 px-8">
             <div className="flex items-start justify-between mb-6">
               <div>
                 <div className="flex items-center gap-3 mb-2">
