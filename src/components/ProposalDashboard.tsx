@@ -15,6 +15,7 @@ import { ConfirmationModal } from "./ConfirmationModal";
 import { ProposalData, ProposalItem, ProposalSection as ProposalSectionType, EquipmentQuestionData, Suggestion } from "@/types/proposal";
 import { toast } from "@/hooks/use-toast";
 import { Footer } from "./Footer";
+import { apiService } from "@/services/api";
 
 interface ProposalDashboardProps {
   proposalData: ProposalData;
@@ -46,16 +47,10 @@ export function ProposalDashboard({ proposalData: initialProposalData }: Proposa
     const fetchQuestions = async () => {
       setQuestionsLoading(true);
       setQuestionsError(null);
-      
+
       try {
-        const response = await fetch(`/api/v1/proposals/${proposalId}/questions`);
-        
-        if (!response.ok) {
-          throw new Error('Failed to fetch questions');
-        }
-        
-        const data = await response.json();
-        setQuestions(data.questions || []);
+        const questions = await apiService.getProposalQuestions(proposalId);
+        setQuestions(questions);
       } catch (error) {
         console.error('Failed to fetch questions:', error);
         setQuestionsError(error instanceof Error ? error.message : 'Failed to load questions');
@@ -149,28 +144,16 @@ export function ProposalDashboard({ proposalData: initialProposalData }: Proposa
 
   const handleSubmitQuestion = async (question: string, itemId: string, itemName: string, sectionName: string) => {
     try {
-      const response = await fetch(`/api/v1/proposals/${proposalId}/questions`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          item_id: itemId,
-          item_name: itemName,
-          section_name: sectionName,
-          question: question,
-        }),
+      const newQuestion = await apiService.createProposalQuestion(proposalId, {
+        item_id: itemId,
+        item_name: itemName,
+        section_name: sectionName,
+        question: question,
       });
-  
-      if (!response.ok) {
-        throw new Error('Failed to submit question');
-      }
-  
-      const newQuestion = await response.json();
-      
+
       // Add new question to the list
       setQuestions(prev => [newQuestion, ...prev]);
-      
+
       toast({
         title: "Question Submitted",
         description: `Your question about "${itemName}" has been sent to the Pinnacle Live team.`,
@@ -187,28 +170,16 @@ export function ProposalDashboard({ proposalData: initialProposalData }: Proposa
   
   const handleAskGeneralQuestion = async (question: string, subject: string) => {
     try {
-      const response = await fetch(`/api/v1/proposals/${proposalId}/questions`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          item_id: 'general',
-          item_name: subject,
-          section_name: 'General',
-          question: question,
-        }),
+      const newQuestion = await apiService.createProposalQuestion(proposalId, {
+        item_id: 'general',
+        item_name: subject,
+        section_name: 'General',
+        question: question,
       });
-  
-      if (!response.ok) {
-        throw new Error('Failed to submit question');
-      }
-  
-      const newQuestion = await response.json();
-      
+
       // Add new question to the list
       setQuestions(prev => [newQuestion, ...prev]);
-      
+
       toast({
         title: "Question Submitted",
         description: `Your question about "${subject}" has been sent to the Pinnacle Live team.`,
@@ -225,22 +196,8 @@ export function ProposalDashboard({ proposalData: initialProposalData }: Proposa
 
   const handleAnswerQuestion = async (questionId: string, answer: string) => {
     try {
-      const response = await fetch(`/api/v1/questions/${questionId}/answer`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          answer: answer,
-        }),
-      });
+      const updatedQuestion = await apiService.answerQuestion(questionId, answer);
 
-      if (!response.ok) {
-        throw new Error('Failed to submit answer');
-      }
-
-      const updatedQuestion = await response.json();
-      
       // Update the question in the list
       setQuestions(prev => prev.map(q =>
         q.id === questionId ? updatedQuestion : q
@@ -463,15 +420,15 @@ export function ProposalDashboard({ proposalData: initialProposalData }: Proposa
           )}
 
           {/* Main Tabs */}
-          <Tabs defaultValue="proposal" className="w-full">
+          <Tabs defaultValue="timeline" className="w-full">
             <TabsList className="grid w-full grid-cols-4 bg-secondary/50">
-              <TabsTrigger value="proposal" className="flex items-center gap-2">
-                <FileText className="h-4 w-4" />
-                Proposal Details
-              </TabsTrigger>
               <TabsTrigger value="timeline" className="flex items-center gap-2">
                 <Calendar className="h-4 w-4" />
                 Timeline
+              </TabsTrigger>
+              <TabsTrigger value="proposal" className="flex items-center gap-2">
+                <FileText className="h-4 w-4" />
+                Proposal Details
               </TabsTrigger>
               <TabsTrigger value="questions" className="flex items-center gap-2 relative">
                 <HelpCircle className="h-4 w-4" />
@@ -498,10 +455,18 @@ export function ProposalDashboard({ proposalData: initialProposalData }: Proposa
                   </Badge>
                 </div>
                 <div className="flex gap-2">
-                  <Button variant="outline" size="sm" onClick={expandAllSections}>
+                  <Button
+                    size="sm"
+                    onClick={expandAllSections}
+                    className="bg-primary hover:bg-primary/90 text-primary-foreground rounded-full px-4"
+                  >
                     Expand All
                   </Button>
-                  <Button variant="outline" size="sm" onClick={collapseAllSections}>
+                  <Button
+                    size="sm"
+                    onClick={collapseAllSections}
+                    className="bg-primary hover:bg-primary/90 text-primary-foreground rounded-full px-4"
+                  >
                     Collapse All
                   </Button>
                 </div>
@@ -543,7 +508,7 @@ export function ProposalDashboard({ proposalData: initialProposalData }: Proposa
             </TabsContent>
 
             <TabsContent value="timeline" className="mt-8">
-              <TimelineView timeline={proposalData.timeline} />
+              <TimelineView timeline={proposalData.timeline} totalCost={totalCost} />
             </TabsContent>
 
             <TabsContent value="questions" className="mt-8">

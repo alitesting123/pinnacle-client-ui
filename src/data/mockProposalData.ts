@@ -347,9 +347,21 @@ export const mockTimeline: TimelineEvent[] = [
     endTime: '18:00',
     title: 'Load-in & Setup',
     location: 'Ryder Cup Ballroom DE',
-    setup: ['Audio rigging', 'Lighting truss installation', 'Video setup'],
-    equipment: ['Audio', 'Lighting', 'Staging'],
-    cost: 12500
+    setup: ['Audio rigging', 'Lighting truss installation', 'Video setup', 'Stage construction', 'Power distribution'],
+    equipment: ['Audio', 'Lighting', 'Staging', 'Video', 'Rigging'],
+    cost: 12500,
+    description: 'Complete venue load-in and technical setup including all audio, lighting, video, and staging infrastructure. Rigging and power distribution will be completed during this phase.',
+    crewCount: 15,
+    leadTechnician: 'Mike Johnson',
+    status: 'confirmed',
+    notes: ['Early load-in access confirmed with venue', 'Parking passes required for all crew', 'Freight elevator reserved 8am-6pm'],
+    milestones: ['Rigging complete by 2pm', 'Stage build complete by 4pm', 'Audio/video hang complete by 6pm'],
+    costBreakdown: {
+      labor: 7500,
+      equipment: 3200,
+      materials: 1200,
+      other: 600
+    }
   },
   {
     id: 'event-day-1',
@@ -358,9 +370,21 @@ export const mockTimeline: TimelineEvent[] = [
     endTime: '22:00',
     title: 'Event Day 1',
     location: 'Ryder Cup Ballroom DE',
-    setup: ['Final sound check', 'Lighting programming', 'Video testing'],
-    equipment: ['Full production'],
-    cost: 28500
+    setup: ['Final sound check', 'Lighting programming', 'Video testing', 'Client rehearsal', 'Showtime operations'],
+    equipment: ['Full production', 'Wireless mics', 'LED walls', 'Spotlight operators'],
+    cost: 28500,
+    description: 'Full production day with morning rehearsal, technical refinements, and evening show. Complete audio, lighting, and video operations with dedicated crew for all systems.',
+    crewCount: 22,
+    leadTechnician: 'Sarah Martinez',
+    status: 'confirmed',
+    notes: ['VIP guests arrive at 6pm', 'Catering for crew at 5pm', 'Two-way radios distributed at 7am call'],
+    milestones: ['Rehearsal start 10am', 'Doors open 6pm', 'Show start 7pm', 'Show end 10pm'],
+    costBreakdown: {
+      labor: 18500,
+      equipment: 7800,
+      materials: 1200,
+      other: 1000
+    }
   },
   {
     id: 'event-day-2',
@@ -369,9 +393,21 @@ export const mockTimeline: TimelineEvent[] = [
     endTime: '22:00',
     title: 'Event Day 2',
     location: 'Ryder Cup Ballroom DE',
-    setup: ['Maintenance check', 'Show operation'],
-    equipment: ['Full production'],
-    cost: 25400
+    setup: ['Maintenance check', 'Show operation', 'Equipment inspection', 'Programming adjustments'],
+    equipment: ['Full production', 'Backup systems', 'Recording equipment'],
+    cost: 25400,
+    description: 'Second event day with continued production operations. Systems maintenance and monitoring throughout the day, with enhanced backup systems in place.',
+    crewCount: 20,
+    leadTechnician: 'Sarah Martinez',
+    status: 'confirmed',
+    notes: ['Video recording requested by client', 'Backup power generators on standby', 'Extended show runtime expected'],
+    milestones: ['Pre-show check 5pm', 'Doors open 6pm', 'Show start 7pm', 'Event wrap 10pm'],
+    costBreakdown: {
+      labor: 16400,
+      equipment: 6500,
+      materials: 800,
+      other: 1700
+    }
   },
   {
     id: 'strike',
@@ -380,9 +416,21 @@ export const mockTimeline: TimelineEvent[] = [
     endTime: '17:00',
     title: 'Strike & Load-out',
     location: 'Ryder Cup Ballroom DE',
-    setup: ['Equipment breakdown', 'Load-out'],
-    equipment: ['All equipment removal'],
-    cost: 8380
+    setup: ['Equipment breakdown', 'Load-out', 'Cable coiling', 'Inventory check', 'Venue cleanup'],
+    equipment: ['All equipment removal', 'Packing materials', 'Trucks'],
+    cost: 8380,
+    description: 'Complete teardown and load-out of all production equipment. Systematic breakdown of audio, lighting, video, and staging with full inventory verification.',
+    crewCount: 12,
+    leadTechnician: 'Mike Johnson',
+    status: 'scheduled',
+    notes: ['Venue must be cleared by 5pm', 'All trash removed from site', 'Final walkthrough with venue manager'],
+    milestones: ['Stage strike starts 8am', 'Rigging down by 12pm', 'All equipment loaded by 4pm', 'Venue cleared by 5pm'],
+    costBreakdown: {
+      labor: 5880,
+      equipment: 1200,
+      materials: 800,
+      other: 500
+    }
   }
 ];
 
