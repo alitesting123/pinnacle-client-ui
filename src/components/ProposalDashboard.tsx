@@ -463,15 +463,15 @@ export function ProposalDashboard({ proposalData: initialProposalData }: Proposa
           )}
 
           {/* Main Tabs */}
-          <Tabs defaultValue="proposal" className="w-full">
+          <Tabs defaultValue="timeline" className="w-full">
             <TabsList className="grid w-full grid-cols-4 bg-secondary/50">
-              <TabsTrigger value="proposal" className="flex items-center gap-2">
-                <FileText className="h-4 w-4" />
-                Proposal Details
-              </TabsTrigger>
               <TabsTrigger value="timeline" className="flex items-center gap-2">
                 <Calendar className="h-4 w-4" />
                 Timeline
+              </TabsTrigger>
+              <TabsTrigger value="proposal" className="flex items-center gap-2">
+                <FileText className="h-4 w-4" />
+                Proposal Details
               </TabsTrigger>
               <TabsTrigger value="questions" className="flex items-center gap-2 relative">
                 <HelpCircle className="h-4 w-4" />
