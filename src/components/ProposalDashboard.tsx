@@ -455,10 +455,18 @@ export function ProposalDashboard({ proposalData: initialProposalData }: Proposa
                   </Badge>
                 </div>
                 <div className="flex gap-2">
-                  <Button variant="outline" size="sm" onClick={expandAllSections}>
+                  <Button
+                    size="sm"
+                    onClick={expandAllSections}
+                    className="bg-primary hover:bg-primary/90 text-primary-foreground rounded-full px-4"
+                  >
                     Expand All
                   </Button>
-                  <Button variant="outline" size="sm" onClick={collapseAllSections}>
+                  <Button
+                    size="sm"
+                    onClick={collapseAllSections}
+                    className="bg-primary hover:bg-primary/90 text-primary-foreground rounded-full px-4"
+                  >
                     Collapse All
                   </Button>
                 </div>
