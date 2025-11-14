@@ -115,8 +115,10 @@ export function ProposalSection({
                 <thead className="border-b border-card-border">
                   <tr className="text-left">
                     <th className="p-4 text-sm font-semibold text-muted-foreground uppercase tracking-wide">Item</th>
+                    <th className="p-4 text-sm font-semibold text-muted-foreground uppercase tracking-wide text-center">Qty</th>
                     <th className="p-4 text-sm font-semibold text-muted-foreground uppercase tracking-wide">Duration</th>
                     <th className="p-4 text-sm font-semibold text-muted-foreground uppercase tracking-wide text-right">Unit Price</th>
+                    <th className="p-4 text-sm font-semibold text-muted-foreground uppercase tracking-wide text-right">Discount</th>
                     <th className="p-4 text-sm font-semibold text-muted-foreground uppercase tracking-wide text-right">Subtotal</th>
                     <th className="p-4 text-sm font-semibold text-muted-foreground uppercase tracking-wide text-center">Actions</th>
                   </tr>
@@ -161,9 +163,21 @@ export function ProposalSection({
                           </div>
                         </div>
                       </td>
+                      <td className="p-4 text-center font-medium text-foreground">
+                        {item.quantity}
+                      </td>
                       <td className="p-4 text-muted-foreground">{item.duration}</td>
                       <td className="p-4 text-right font-semibold text-foreground">
                         {formatCurrency(item.price)}
+                      </td>
+                      <td className="p-4 text-right font-medium text-foreground">
+                        {item.discount !== 0 ? (
+                          <span className={item.discount < 0 ? 'text-success' : 'text-destructive'}>
+                            {formatCurrency(item.discount)}
+                          </span>
+                        ) : (
+                          <span className="text-muted-foreground">—</span>
+                        )}
                       </td>
                       <td className="p-4 text-right font-bold text-primary">
                         {formatCurrency(item.subtotal)}
