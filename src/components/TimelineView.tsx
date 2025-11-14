@@ -1,15 +1,29 @@
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Calendar, Clock, MapPin, DollarSign, Users, User, CheckCircle2, AlertCircle, FileText } from "lucide-react";
-import { TimelineEvent } from "@/types/proposal";
+import { Button } from "@/components/ui/button";
+import { Calendar, Clock, MapPin, DollarSign, Users, User, CheckCircle2, AlertCircle, FileText, Briefcase } from "lucide-react";
+import { TimelineEvent, LaborTask } from "@/types/proposal";
 import { format } from "date-fns";
+import { useState } from "react";
 
 interface TimelineViewProps {
   timeline: TimelineEvent[];
   totalCost: number;
+  labor?: LaborTask[];
+  pricing?: {
+    productSubtotal: number;
+    productDiscount: number;
+    productTotal: number;
+    laborTotal: number;
+    serviceCharge: number;
+    taxAmount: number;
+    totalCost: number;
+  };
 }
 
-export function TimelineView({ timeline, totalCost }: TimelineViewProps) {
+export function TimelineView({ timeline, totalCost, labor, pricing }: TimelineViewProps) {
+  const [viewMode, setViewMode] = useState<'event' | 'labor'>('event');
+
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
@@ -43,20 +57,93 @@ export function TimelineView({ timeline, totalCost }: TimelineViewProps) {
     return minutes > 0 ? `${hours}h ${minutes}m` : `${hours} hours`;
   };
 
+  const formatTime = (time: string) => {
+    // Convert "HH:MM:SS" to "HH:MM AM/PM"
+    const [hour, minute] = time.split(':').map(Number);
+    const period = hour >= 12 ? 'PM' : 'AM';
+    const displayHour = hour === 0 ? 12 : hour > 12 ? hour - 12 : hour;
+    return `${displayHour}:${minute.toString().padStart(2, '0')} ${period}`;
+  };
+
+  // Helper function to get labor tasks for a specific date
+  const getLaborForDate = (eventDate: string): LaborTask[] => {
+    if (!labor) return [];
+    return labor.filter(task => {
+      const taskDate = new Date(task.date).toISOString().split('T')[0];
+      const eDate = new Date(eventDate).toISOString().split('T')[0];
+      return taskDate === eDate;
+    });
+  };
+
+  // Group labor tasks by date for labor view
+  const getLaborGroupedByDate = () => {
+    if (!labor) return [];
+
+    const grouped = labor.reduce((acc, task) => {
+      const dateKey = new Date(task.date).toISOString().split('T')[0];
+      if (!acc[dateKey]) {
+        acc[dateKey] = [];
+      }
+      acc[dateKey].push(task);
+      return acc;
+    }, {} as Record<string, LaborTask[]>);
+
+    return Object.entries(grouped)
+      .sort(([dateA], [dateB]) => new Date(dateA).getTime() - new Date(dateB).getTime())
+      .map(([date, tasks]) => ({
+        date,
+        tasks,
+        total: tasks.reduce((sum, task) => sum + task.subtotal, 0)
+      }));
+  };
+
+  const laborGroups = getLaborGroupedByDate();
+  const laborTotal = labor?.reduce((sum, task) => sum + task.subtotal, 0) || 0;
+
   return (
     <Card className="border-card-border shadow-md">
       <div className="p-6">
-        <div className="flex items-center gap-3 mb-6">
-          <Calendar className="h-6 w-6 text-primary" />
-          <h2 className="text-2xl font-bold text-foreground">Event Timeline</h2>
+        {/* Header with Toggle */}
+        <div className="flex items-center justify-between mb-6">
+          <div className="flex items-center gap-3">
+            <Calendar className="h-6 w-6 text-primary" />
+            <h2 className="text-2xl font-bold text-foreground">
+              {viewMode === 'event' ? 'Event Timeline' : 'Labor Schedule Timeline'}
+            </h2>
+          </div>
+
+          {/* View Toggle Buttons */}
+          <div className="flex gap-2">
+            <Button
+              variant={viewMode === 'event' ? 'default' : 'outline'}
+              onClick={() => setViewMode('event')}
+              className="rounded-full"
+            >
+              <Calendar className="h-4 w-4 mr-2" />
+              Event View
+            </Button>
+            <Button
+              variant={viewMode === 'labor' ? 'default' : 'outline'}
+              onClick={() => setViewMode('labor')}
+              className="rounded-full"
+            >
+              <Briefcase className="h-4 w-4 mr-2" />
+              Labor View
+            </Button>
+          </div>
         </div>
 
-        <div className="relative">
-          {/* Timeline line */}
-          <div className="absolute left-8 top-0 bottom-0 w-0.5 bg-border"></div>
-          
-          <div className="space-y-8">
-            {timeline.map((event, index) => (
+        {/* Event View */}
+        {viewMode === 'event' && (
+          <div className="relative">
+            {/* Timeline line */}
+            <div className="absolute left-8 top-0 bottom-0 w-0.5 bg-border"></div>
+
+            <div className="space-y-8">
+              {timeline.map((event, index) => {
+                const laborTasks = getLaborForDate(event.date);
+                const eventWithLaborCost = event.cost + laborTasks.reduce((sum, task) => sum + task.subtotal, 0);
+                return (
               <div key={event.id} className="relative flex items-start gap-6">
                 {/* Timeline dot */}
                 <div className="relative z-10 flex-shrink-0">
@@ -125,18 +212,13 @@ export function TimelineView({ timeline, totalCost }: TimelineViewProps) {
 
                         {/* Cost Section */}
                         <div className="flex flex-col items-end ml-4">
-                          <div className="flex items-center gap-2 text-primary mb-2">
-                            <DollarSign className="h-5 w-5" />
-                            <span className="text-2xl font-bold">{formatCurrency(event.cost)}</span>
+                          <div className="text-primary mb-2">
+                            <span className="text-2xl font-bold">{formatCurrency(eventWithLaborCost)}</span>
                           </div>
-                          {event.costBreakdown && (
-                            <div className="text-xs text-right space-y-1 text-muted-foreground">
-                              <div>Labor: {formatCurrency(event.costBreakdown.labor)}</div>
-                              <div>Equipment: {formatCurrency(event.costBreakdown.equipment)}</div>
-                              <div>Materials: {formatCurrency(event.costBreakdown.materials)}</div>
-                              <div>Other: {formatCurrency(event.costBreakdown.other)}</div>
-                            </div>
-                          )}
+                          <div className="text-xs text-right space-y-1 text-muted-foreground">
+                            <div>Equipment: {formatCurrency(event.cost)}</div>
+                            <div>Labor: {formatCurrency(laborTasks.reduce((sum, task) => sum + task.subtotal, 0))}</div>
+                          </div>
                         </div>
                       </div>
 
@@ -206,96 +288,345 @@ export function TimelineView({ timeline, totalCost }: TimelineViewProps) {
                           </div>
                         )}
                       </div>
+
+                      {/* Labor Tasks for this day */}
+                      {laborTasks.length > 0 && (
+                        <div className="mt-6 pt-6 border-t border-card-border">
+                          <h4 className="font-semibold text-foreground mb-4 flex items-center gap-2">
+                            <Briefcase className="h-4 w-4" />
+                            Labor Schedule for this Day
+                          </h4>
+                          <div className="overflow-x-auto">
+                            <table className="w-full text-sm">
+                              <thead className="border-b border-card-border bg-muted/20">
+                                <tr className="text-left">
+                                  <th className="p-3 text-xs font-semibold text-muted-foreground uppercase">Task</th>
+                                  <th className="p-3 text-xs font-semibold text-muted-foreground uppercase text-center">Qty</th>
+                                  <th className="p-3 text-xs font-semibold text-muted-foreground uppercase">Time</th>
+                                  <th className="p-3 text-xs font-semibold text-muted-foreground uppercase text-center">Hours</th>
+                                  <th className="p-3 text-xs font-semibold text-muted-foreground uppercase text-right">Rate</th>
+                                  <th className="p-3 text-xs font-semibold text-muted-foreground uppercase text-right">Subtotal</th>
+                                </tr>
+                              </thead>
+                              <tbody>
+                                {laborTasks.map((task) => (
+                                  <tr key={task.id} className="border-b border-card-border/30 hover:bg-secondary/10 transition-colors">
+                                    <td className="p-3">
+                                      <div>
+                                        <p className="font-medium text-foreground">{task.task_name}</p>
+                                        {task.notes && (
+                                          <p className="text-xs text-muted-foreground mt-1 italic">{task.notes}</p>
+                                        )}
+                                      </div>
+                                    </td>
+                                    <td className="p-3 text-center font-medium text-foreground">
+                                      {task.quantity}
+                                    </td>
+                                    <td className="p-3 text-muted-foreground whitespace-nowrap">
+                                      {formatTime(task.start_time)} - {formatTime(task.end_time)}
+                                    </td>
+                                    <td className="p-3 text-center">
+                                      <div className="flex items-center justify-center gap-1 text-xs">
+                                        {task.regular_hours > 0 && (
+                                          <Badge variant="secondary" className="font-mono text-xs px-1.5 py-0.5">
+                                            ST:{task.regular_hours}
+                                          </Badge>
+                                        )}
+                                        {task.overtime_hours > 0 && (
+                                          <Badge variant="secondary" className="font-mono text-xs px-1.5 py-0.5 bg-yellow-100 text-yellow-800">
+                                            OT:{task.overtime_hours}
+                                          </Badge>
+                                        )}
+                                        {task.double_time_hours > 0 && (
+                                          <Badge variant="secondary" className="font-mono text-xs px-1.5 py-0.5 bg-orange-100 text-orange-800">
+                                            DT:{task.double_time_hours}
+                                          </Badge>
+                                        )}
+                                      </div>
+                                    </td>
+                                    <td className="p-3 text-right font-semibold text-foreground">
+                                      {formatCurrency(task.hourly_rate)}
+                                    </td>
+                                    <td className="p-3 text-right font-bold text-primary">
+                                      {formatCurrency(task.subtotal)}
+                                    </td>
+                                  </tr>
+                                ))}
+                              </tbody>
+                              <tfoot className="border-t border-card-border bg-muted/20">
+                                <tr>
+                                  <td colSpan={5} className="p-3 text-right text-sm font-semibold text-foreground">
+                                    Day Labor Total:
+                                  </td>
+                                  <td className="p-3 text-right font-bold text-primary">
+                                    {formatCurrency(laborTasks.reduce((sum, task) => sum + task.subtotal, 0))}
+                                  </td>
+                                </tr>
+                              </tfoot>
+                            </table>
+                          </div>
+                        </div>
+                      )}
                     </div>
                   </Card>
                 </div>
               </div>
-            ))}
+                );
+              })}
+            </div>
           </div>
-        </div>
+        )}
 
-        <div className="mt-8 pt-8 border-t border-card-border">
-          <div className="mb-8">
-            <h3 className="text-2xl font-semibold text-foreground mb-2">Timeline Summary</h3>
+        {/* Labor View */}
+        {viewMode === 'labor' && (
+          <div className="relative">
+            {/* Timeline line */}
+            <div className="absolute left-8 top-0 bottom-0 w-0.5 bg-border"></div>
+
+            <div className="space-y-8">
+              {laborGroups.map((group, index) => (
+                <div key={group.date} className="relative flex items-start gap-6">
+                  {/* Timeline dot */}
+                  <div className="relative z-10 flex-shrink-0">
+                    <div className="w-4 h-4 bg-primary rounded-full border-4 border-background shadow-md"></div>
+                  </div>
+
+                  {/* Labor Day Card */}
+                  <div className="flex-1 min-w-0">
+                    <Card className="border-card-border hover:shadow-md transition-shadow duration-200">
+                      <div className="p-6">
+                        {/* Header Section */}
+                        <div className="flex items-start justify-between mb-4">
+                          <div className="flex-1">
+                            <div className="flex items-center gap-3 mb-2 flex-wrap">
+                              <h3 className="text-xl font-semibold text-foreground">Labor Schedule</h3>
+                              <Badge className="bg-primary text-primary-foreground">
+                                Day {index + 1}
+                              </Badge>
+                            </div>
+
+                            {/* Date Info */}
+                            <div className="flex items-center gap-2 text-sm text-muted-foreground mb-3">
+                              <Calendar className="h-4 w-4 flex-shrink-0" />
+                              <span>{format(new Date(group.date), 'EEEE, MMM dd, yyyy')}</span>
+                            </div>
+
+                            <p className="text-sm text-muted-foreground">
+                              {group.tasks.length} labor task{group.tasks.length !== 1 ? 's' : ''} scheduled
+                            </p>
+                          </div>
+
+                          {/* Cost Section */}
+                          <div className="flex flex-col items-end ml-4">
+                            <div className="text-primary mb-2">
+                              <span className="text-2xl font-bold">{formatCurrency(group.total)}</span>
+                            </div>
+                            <div className="text-xs text-right text-muted-foreground">
+                              Day Labor Total
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Labor Tasks Table */}
+                        <div className="mt-6 pt-6 border-t border-card-border">
+                          <h4 className="font-semibold text-foreground mb-4 flex items-center gap-2">
+                            <Briefcase className="h-4 w-4" />
+                            Tasks & Crew
+                          </h4>
+                          <div className="overflow-x-auto">
+                            <table className="w-full text-sm">
+                              <thead className="border-b border-card-border bg-muted/20">
+                                <tr className="text-left">
+                                  <th className="p-3 text-xs font-semibold text-muted-foreground uppercase">Task</th>
+                                  <th className="p-3 text-xs font-semibold text-muted-foreground uppercase text-center">Qty</th>
+                                  <th className="p-3 text-xs font-semibold text-muted-foreground uppercase">Time</th>
+                                  <th className="p-3 text-xs font-semibold text-muted-foreground uppercase text-center">Hours</th>
+                                  <th className="p-3 text-xs font-semibold text-muted-foreground uppercase text-right">Rate</th>
+                                  <th className="p-3 text-xs font-semibold text-muted-foreground uppercase text-right">Subtotal</th>
+                                </tr>
+                              </thead>
+                              <tbody>
+                                {group.tasks.map((task) => (
+                                  <tr key={task.id} className="border-b border-card-border/30 hover:bg-secondary/10 transition-colors">
+                                    <td className="p-3">
+                                      <div>
+                                        <p className="font-medium text-foreground">{task.task_name}</p>
+                                        {task.notes && (
+                                          <p className="text-xs text-muted-foreground mt-1 italic">{task.notes}</p>
+                                        )}
+                                      </div>
+                                    </td>
+                                    <td className="p-3 text-center font-medium text-foreground">
+                                      {task.quantity}
+                                    </td>
+                                    <td className="p-3 text-muted-foreground whitespace-nowrap">
+                                      {formatTime(task.start_time)} - {formatTime(task.end_time)}
+                                    </td>
+                                    <td className="p-3 text-center">
+                                      <div className="flex items-center justify-center gap-1 text-xs">
+                                        {task.regular_hours > 0 && (
+                                          <Badge variant="secondary" className="font-mono text-xs px-1.5 py-0.5">
+                                            ST:{task.regular_hours}
+                                          </Badge>
+                                        )}
+                                        {task.overtime_hours > 0 && (
+                                          <Badge variant="secondary" className="font-mono text-xs px-1.5 py-0.5 bg-yellow-100 text-yellow-800">
+                                            OT:{task.overtime_hours}
+                                          </Badge>
+                                        )}
+                                        {task.double_time_hours > 0 && (
+                                          <Badge variant="secondary" className="font-mono text-xs px-1.5 py-0.5 bg-orange-100 text-orange-800">
+                                            DT:{task.double_time_hours}
+                                          </Badge>
+                                        )}
+                                      </div>
+                                    </td>
+                                    <td className="p-3 text-right font-semibold text-foreground">
+                                      {formatCurrency(task.hourly_rate)}
+                                    </td>
+                                    <td className="p-3 text-right font-bold text-primary">
+                                      {formatCurrency(task.subtotal)}
+                                    </td>
+                                  </tr>
+                                ))}
+                              </tbody>
+                              <tfoot className="border-t border-card-border bg-muted/20">
+                                <tr>
+                                  <td colSpan={5} className="p-3 text-right text-sm font-semibold text-foreground">
+                                    Day Labor Total:
+                                  </td>
+                                  <td className="p-3 text-right font-bold text-primary">
+                                    {formatCurrency(group.total)}
+                                  </td>
+                                </tr>
+                              </tfoot>
+                            </table>
+                          </div>
+                        </div>
+                      </div>
+                    </Card>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        <div className="mt-8 pt-8 border-t border-card-border bg-muted/30 -mx-6 px-6 pb-6 rounded-b-lg">
+          <div className="mb-6">
+            <h3 className="text-2xl font-semibold text-foreground mb-2">
+              {viewMode === 'event' ? 'Timeline Summary' : 'Labor Summary'}
+            </h3>
             <div className="h-1 w-20 bg-primary rounded"></div>
           </div>
-          <div className={`grid grid-cols-1 md:grid-cols-2 ${timeline.some(e => e.crewCount) ? 'lg:grid-cols-4' : 'lg:grid-cols-3'} gap-6`}>
-            {/* Duration Summary */}
-            <Card className="border border-card-border shadow-sm hover:shadow-md transition-shadow p-6 bg-background">
-              <div className="flex flex-col">
-                <div className="flex items-center gap-3 mb-4">
-                  <div className="p-2 bg-muted rounded">
-                    <Calendar className="h-5 w-5 text-foreground" />
-                  </div>
-                  <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Event Duration</p>
-                </div>
-                <div>
-                  <p className="text-4xl font-bold text-foreground mb-2">{timeline.length}</p>
-                  <p className="text-sm text-muted-foreground font-medium">Days</p>
-                  <p className="text-xs text-muted-foreground mt-2">
-                    {format(new Date(timeline[0]?.date), 'MMM dd')} - {format(new Date(timeline[timeline.length - 1]?.date), 'MMM dd, yyyy')}
-                  </p>
-                </div>
-              </div>
-            </Card>
 
-            {/* Total Cost */}
-            <Card className="border border-card-border shadow-sm hover:shadow-md transition-shadow p-6 bg-background">
-              <div className="flex flex-col">
-                <div className="flex items-center gap-3 mb-4">
-                  <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Proposal Total</p>
-                </div>
-                <div>
-                  <p className="text-4xl font-bold text-foreground mb-2">
-                    {formatCurrency(totalCost)}
-                  </p>
-                  <p className="text-xs text-muted-foreground mt-2">All equipment, labor, and services included</p>
-                </div>
-              </div>
-            </Card>
-
-            {/* Total Hours */}
-            <Card className="border border-card-border shadow-sm hover:shadow-md transition-shadow p-6 bg-background">
-              <div className="flex flex-col">
-                <div className="flex items-center gap-3 mb-4">
-                  <div className="p-2 bg-muted rounded">
-                    <Clock className="h-5 w-5 text-foreground" />
-                  </div>
-                  <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Total Hours</p>
-                </div>
-                <div>
-                  <p className="text-4xl font-bold text-foreground mb-2">
-                    {timeline.reduce((total, event) => {
-                      const [startHour, startMin] = event.startTime.split(':').map(Number);
-                      const [endHour, endMin] = event.endTime.split(':').map(Number);
-                      return total + ((endHour * 60 + endMin) - (startHour * 60 + startMin)) / 60;
-                    }, 0).toFixed(0)}
-                  </p>
-                  <p className="text-sm text-muted-foreground font-medium">Hours</p>
-                  <p className="text-xs text-muted-foreground mt-2">Production time</p>
-                </div>
-              </div>
-            </Card>
-
-            {/* Peak Crew - Only show if crew data is available */}
-            {timeline.some(e => e.crewCount && e.crewCount > 0) && (
-              <Card className="border border-card-border shadow-sm hover:shadow-md transition-shadow p-6 bg-background">
-                <div className="flex flex-col">
-                  <div className="flex items-center gap-3 mb-4">
-                    <div className="p-2 bg-muted rounded">
-                      <Users className="h-5 w-5 text-foreground" />
-                    </div>
-                    <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Peak Crew</p>
-                  </div>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* Left Column - Summary Cards */}
+            <div className="space-y-4">
+              {/* Duration */}
+              <div className="flex items-center justify-between p-4 bg-background rounded-lg border border-card-border">
+                <div className="flex items-center gap-3">
+                  <Calendar className="h-5 w-5 text-primary" />
                   <div>
-                    <p className="text-4xl font-bold text-foreground mb-2">
-                      {Math.max(...timeline.map(e => e.crewCount || 0))}
+                    <p className="text-xs text-muted-foreground uppercase">
+                      {viewMode === 'event' ? 'Event Duration' : 'Labor Duration'}
                     </p>
-                    <p className="text-sm text-muted-foreground font-medium">People</p>
-                    <p className="text-xs text-muted-foreground mt-2">Maximum staffing</p>
+                    <p className="text-2xl font-bold text-foreground">
+                      {viewMode === 'event' ? timeline.length : laborGroups.length} Days
+                    </p>
+                    {viewMode === 'event' && timeline.length > 0 && (
+                      <p className="text-xs text-muted-foreground">
+                        {format(new Date(timeline[0]?.date), 'MMM dd')} - {format(new Date(timeline[timeline.length - 1]?.date), 'MMM dd, yyyy')}
+                      </p>
+                    )}
+                    {viewMode === 'labor' && laborGroups.length > 0 && (
+                      <p className="text-xs text-muted-foreground">
+                        {format(new Date(laborGroups[0]?.date), 'MMM dd')} - {format(new Date(laborGroups[laborGroups.length - 1]?.date), 'MMM dd, yyyy')}
+                      </p>
+                    )}
                   </div>
                 </div>
-              </Card>
+              </div>
+
+              {/* Total Cost */}
+              <div className="flex items-center justify-between p-4 bg-background rounded-lg border border-card-border">
+                <div className="flex-1">
+                  <p className="text-xs text-muted-foreground uppercase">
+                    {viewMode === 'event' ? 'Proposal Total' : 'Total Labor Cost'}
+                  </p>
+                  <p className="text-2xl font-bold text-primary">
+                    {formatCurrency(viewMode === 'event' ? totalCost : laborTotal)}
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    {viewMode === 'event'
+                      ? 'All equipment, labor, and services included'
+                      : 'All labor and crew costs'
+                    }
+                  </p>
+                </div>
+              </div>
+
+              {/* Total Hours */}
+              <div className="flex items-center justify-between p-4 bg-background rounded-lg border border-card-border">
+                <div className="flex items-center gap-3">
+                  <Clock className="h-5 w-5 text-primary" />
+                  <div>
+                    <p className="text-xs text-muted-foreground uppercase">Total Hours</p>
+                    <p className="text-2xl font-bold text-foreground">
+                      {viewMode === 'event'
+                        ? timeline.reduce((total, event) => {
+                            const [startHour, startMin] = event.startTime.split(':').map(Number);
+                            const [endHour, endMin] = event.endTime.split(':').map(Number);
+                            return total + ((endHour * 60 + endMin) - (startHour * 60 + startMin)) / 60;
+                          }, 0).toFixed(0)
+                        : labor?.reduce((total, task) => {
+                            return total + task.regular_hours + task.overtime_hours + task.double_time_hours;
+                          }, 0).toFixed(0) || 0
+                      } Hours
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      {viewMode === 'event' ? 'Production time' : 'Total labor hours'}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Right Column - Financial Breakdown */}
+            {pricing && (
+              <div className="p-6 bg-background rounded-lg border border-card-border">
+                <h4 className="text-sm font-semibold text-muted-foreground uppercase mb-4">Financial Breakdown</h4>
+                <div className="space-y-2">
+                  <div className="flex justify-between items-center text-sm">
+                    <span className="text-muted-foreground">Product Subtotal:</span>
+                    <span className="font-semibold">{formatCurrency(pricing.productSubtotal)}</span>
+                  </div>
+                  <div className="flex justify-between items-center text-sm">
+                    <span className="text-muted-foreground">Discount:</span>
+                    <span className="font-semibold text-success">({formatCurrency(Math.abs(pricing.productDiscount))})</span>
+                  </div>
+                  <div className="flex justify-between items-center text-sm pt-2 border-t border-card-border/50">
+                    <span className="font-medium">Product Total:</span>
+                    <span className="font-semibold">{formatCurrency(pricing.productTotal)}</span>
+                  </div>
+                  <div className="flex justify-between items-center text-sm">
+                    <span className="font-medium">Labor Total:</span>
+                    <span className="font-semibold">{formatCurrency(pricing.laborTotal)}</span>
+                  </div>
+                  <div className="flex justify-between items-center text-sm pt-2 border-t border-card-border/50">
+                    <span className="text-muted-foreground">Service Charge:</span>
+                    <span className="font-semibold">{formatCurrency(pricing.serviceCharge)}</span>
+                  </div>
+                  <div className="flex justify-between items-center text-sm">
+                    <span className="text-muted-foreground">Tax:</span>
+                    <span className="font-semibold">{formatCurrency(pricing.taxAmount)}</span>
+                  </div>
+                  <div className="flex justify-between items-center pt-3 border-t-2 border-card-border">
+                    <span className="text-lg font-bold">Job Total:</span>
+                    <span className="text-xl font-bold text-primary">{formatCurrency(pricing.totalCost)}</span>
+                  </div>
+                </div>
+              </div>
             )}
           </div>
         </div>

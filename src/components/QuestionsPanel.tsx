@@ -91,12 +91,12 @@ export function QuestionsPanel({ questions, onAnswerQuestion, onAskGeneralQuesti
           </div>
           
           {!showQuestionForm && (
-            <Button 
+            <Button
               onClick={() => setShowQuestionForm(true)}
               className="bg-gradient-primary hover:opacity-90"
             >
               <Plus className="h-4 w-4 mr-2" />
-              Ask Question
+              Submit Request
             </Button>
           )}
         </div>
@@ -108,7 +108,7 @@ export function QuestionsPanel({ questions, onAnswerQuestion, onAskGeneralQuesti
               <div className="flex items-center justify-between mb-4">
                 <h3 className="font-semibold text-foreground flex items-center gap-2">
                   <MessageSquare className="h-5 w-5 text-primary" />
-                  Ask a General Question
+                  Submit a General Request
                 </h3>
                 <Button
                   variant="ghost"
@@ -157,7 +157,7 @@ export function QuestionsPanel({ questions, onAnswerQuestion, onAskGeneralQuesti
 
                 <div className="space-y-2">
                   <Label htmlFor="question" className="text-sm font-medium">
-                    Your Question *
+                    Your Request *
                   </Label>
                   <Textarea
                     id="question"
@@ -196,7 +196,7 @@ export function QuestionsPanel({ questions, onAnswerQuestion, onAskGeneralQuesti
                     ) : (
                       <>
                         <Send className="h-4 w-4 mr-2" />
-                        Submit Question
+                        Submit Request
                       </>
                     )}
                   </Button>
@@ -232,7 +232,7 @@ export function QuestionsPanel({ questions, onAnswerQuestion, onAskGeneralQuesti
                       <MessageSquare className="h-5 w-5 text-primary" />
                       <h3 className="text-lg font-semibold text-foreground">General</h3>
                       <Badge variant="secondary" className="text-xs">
-                        {generalQuestions.length} questions
+                        {generalQuestions.length} requests
                       </Badge>
                     </div>
                     <div className="space-y-4">
@@ -253,7 +253,7 @@ export function QuestionsPanel({ questions, onAnswerQuestion, onAskGeneralQuesti
                     <div className="flex items-center gap-2 mb-4">
                       <h3 className="text-lg font-semibold text-foreground">{sectionName}</h3>
                       <Badge variant="secondary" className="text-xs">
-                        {sectionQuestions.length} questions
+                        {sectionQuestions.length} requests
                       </Badge>
                     </div>
                     <div className="space-y-4">
@@ -280,16 +280,16 @@ export function QuestionsPanel({ questions, onAnswerQuestion, onAskGeneralQuesti
                   )}
                 </div>
                 <h3 className="text-lg font-semibold text-foreground mb-2">
-                  {filter === 'pending' ? 'No Pending Questions' : 
-                   filter === 'answered' ? 'No Answered Questions' : 
-                   'No Questions Yet'}
+                  {filter === 'pending' ? 'No Pending Requests' :
+                   filter === 'answered' ? 'No Answered Requests' :
+                   'No Requests Yet'}
                 </h3>
                 <p className="text-muted-foreground">
-                  {filter === 'pending' 
-                    ? "All questions have been answered! Great job staying on top of client inquiries."
+                  {filter === 'pending'
+                    ? "All requests have been answered! Great job staying on top of client inquiries."
                     : filter === 'answered'
-                    ? "No questions have been answered yet. Check the pending tab."
-                    : "Click 'Ask Question' above to start a conversation with the sales team."}
+                    ? "No requests have been answered yet. Check the pending tab."
+                    : "Click 'Submit Request' above to start a conversation with the sales team."}
                 </p>
               </div>
             )}
@@ -301,7 +301,7 @@ export function QuestionsPanel({ questions, onAnswerQuestion, onAskGeneralQuesti
             <div className="flex items-center gap-2">
               <Clock className="h-5 w-5 text-warning" />
               <span className="font-medium text-foreground">
-                {pendingCount} question{pendingCount !== 1 ? 's' : ''} awaiting response
+                {pendingCount} request{pendingCount !== 1 ? 's' : ''} awaiting response
               </span>
             </div>
             <p className="text-sm text-muted-foreground mt-1">

@@ -35,12 +35,34 @@ export interface EventDetails {
   lastModified: string;
 }
 
+export interface LaborTask {
+  id: string;
+  task_name: string;
+  quantity: number;
+  date: string;
+  start_time: string;
+  end_time: string;
+  regular_hours: number;
+  overtime_hours: number;
+  double_time_hours: number;
+  hourly_rate: number;
+  subtotal: number;
+  notes?: string;
+}
+
 export interface ProposalData {
   eventDetails: EventDetails;
   sections: ProposalSection[];
   totalCost: number;
   timeline: TimelineEvent[];
+  labor?: LaborTask[];
   pricing?: {
+    productSubtotal: number;
+    productDiscount: number;
+    productTotal: number;
+    laborTotal: number;
+    serviceCharge: number;
+    taxAmount: number;
     totalCost: number;
   };
 }
