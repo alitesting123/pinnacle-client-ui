@@ -55,6 +55,18 @@ export interface TimelineEvent {
   setup: string[];
   equipment: string[];
   cost: number;
+  description?: string;
+  crewCount?: number;
+  leadTechnician?: string;
+  status?: 'scheduled' | 'in-progress' | 'completed' | 'confirmed';
+  notes?: string[];
+  milestones?: string[];
+  costBreakdown?: {
+    labor: number;
+    equipment: number;
+    materials: number;
+    other: number;
+  };
 }
 
 export interface ChatMessage {
