@@ -214,7 +214,7 @@ export function TimelineView({ timeline, totalCost }: TimelineViewProps) {
           </div>
         </div>
 
-        <div className="mt-8 pt-8 border-t border-card-border">
+        <div className="mt-8 pt-8 border-t border-card-border bg-muted/30 -mx-6 px-6 pb-6 rounded-b-lg">
           <div className="mb-8">
             <h3 className="text-2xl font-semibold text-foreground mb-2">Timeline Summary</h3>
             <div className="h-1 w-20 bg-primary rounded"></div>
