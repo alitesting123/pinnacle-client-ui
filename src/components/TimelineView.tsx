@@ -213,17 +213,22 @@ export function TimelineView({ timeline }: TimelineViewProps) {
           </div>
         </div>
 
-        <div className="mt-8 pt-6 border-t border-card-border">
-          <h3 className="text-lg font-semibold text-foreground mb-4">Event Summary</h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="mt-8 pt-6 border-t-2 border-card-border">
+          <div className="bg-gradient-to-r from-primary/5 to-transparent p-6 rounded-lg mb-6">
+            <h3 className="text-2xl font-bold text-foreground mb-2">Timeline Summary</h3>
+            <p className="text-sm text-muted-foreground">Key metrics across all event phases</p>
+          </div>
+          <div className={`grid grid-cols-1 md:grid-cols-2 ${timeline.some(e => e.crewCount) ? 'lg:grid-cols-4' : 'lg:grid-cols-3'} gap-6`}>
             {/* Duration Summary */}
-            <Card className="border-card-border p-4">
-              <div className="flex items-start gap-3">
-                <Calendar className="h-5 w-5 text-primary mt-1" />
+            <Card className="border-2 border-card-border shadow-lg hover:shadow-xl transition-shadow p-6 bg-gradient-to-br from-background to-secondary/5">
+              <div className="flex items-start gap-4">
+                <div className="p-3 bg-primary/10 rounded-lg">
+                  <Calendar className="h-6 w-6 text-primary" />
+                </div>
                 <div>
-                  <p className="text-sm font-medium text-muted-foreground">Event Duration</p>
-                  <p className="text-lg font-bold text-foreground">{timeline.length} Days</p>
-                  <p className="text-xs text-muted-foreground mt-1">
+                  <p className="text-sm font-semibold text-muted-foreground uppercase tracking-wide mb-1">Event Duration</p>
+                  <p className="text-3xl font-bold text-foreground mb-1">{timeline.length} Days</p>
+                  <p className="text-sm text-muted-foreground">
                     {format(new Date(timeline[0]?.date), 'MMM dd')} - {format(new Date(timeline[timeline.length - 1]?.date), 'MMM dd, yyyy')}
                   </p>
                 </div>
@@ -231,50 +236,58 @@ export function TimelineView({ timeline }: TimelineViewProps) {
             </Card>
 
             {/* Total Cost */}
-            <Card className="border-card-border p-4">
-              <div className="flex items-start gap-3">
-                <DollarSign className="h-5 w-5 text-primary mt-1" />
+            <Card className="border-2 border-card-border shadow-lg hover:shadow-xl transition-shadow p-6 bg-gradient-to-br from-background to-primary/5">
+              <div className="flex items-start gap-4">
+                <div className="p-3 bg-primary/10 rounded-lg">
+                  <DollarSign className="h-6 w-6 text-primary" />
+                </div>
                 <div>
-                  <p className="text-sm font-medium text-muted-foreground">Total Cost</p>
-                  <p className="text-lg font-bold text-foreground">
+                  <p className="text-sm font-semibold text-muted-foreground uppercase tracking-wide mb-1">Timeline Total</p>
+                  <p className="text-3xl font-bold text-primary mb-1">
                     {formatCurrency(timeline.reduce((total, event) => total + event.cost, 0))}
                   </p>
-                  <p className="text-xs text-muted-foreground mt-1">All phases included</p>
+                  <p className="text-sm text-muted-foreground">All phases included</p>
                 </div>
               </div>
             </Card>
 
             {/* Total Hours */}
-            <Card className="border-card-border p-4">
-              <div className="flex items-start gap-3">
-                <Clock className="h-5 w-5 text-primary mt-1" />
+            <Card className="border-2 border-card-border shadow-lg hover:shadow-xl transition-shadow p-6 bg-gradient-to-br from-background to-accent/5">
+              <div className="flex items-start gap-4">
+                <div className="p-3 bg-accent/10 rounded-lg">
+                  <Clock className="h-6 w-6 text-accent-foreground" />
+                </div>
                 <div>
-                  <p className="text-sm font-medium text-muted-foreground">Total Hours</p>
-                  <p className="text-lg font-bold text-foreground">
+                  <p className="text-sm font-semibold text-muted-foreground uppercase tracking-wide mb-1">Total Hours</p>
+                  <p className="text-3xl font-bold text-foreground mb-1">
                     {timeline.reduce((total, event) => {
                       const [startHour, startMin] = event.startTime.split(':').map(Number);
                       const [endHour, endMin] = event.endTime.split(':').map(Number);
                       return total + ((endHour * 60 + endMin) - (startHour * 60 + startMin)) / 60;
-                    }, 0).toFixed(0)} Hours
+                    }, 0).toFixed(0)} hrs
                   </p>
-                  <p className="text-xs text-muted-foreground mt-1">Production time</p>
+                  <p className="text-sm text-muted-foreground">Production time</p>
                 </div>
               </div>
             </Card>
 
-            {/* Peak Crew */}
-            <Card className="border-card-border p-4">
-              <div className="flex items-start gap-3">
-                <Users className="h-5 w-5 text-primary mt-1" />
-                <div>
-                  <p className="text-sm font-medium text-muted-foreground">Peak Crew Size</p>
-                  <p className="text-lg font-bold text-foreground">
-                    {Math.max(...timeline.map(e => e.crewCount || 0))} People
-                  </p>
-                  <p className="text-xs text-muted-foreground mt-1">Maximum staffing</p>
+            {/* Peak Crew - Only show if crew data is available */}
+            {timeline.some(e => e.crewCount && e.crewCount > 0) && (
+              <Card className="border-2 border-card-border shadow-lg hover:shadow-xl transition-shadow p-6 bg-gradient-to-br from-background to-success/5">
+                <div className="flex items-start gap-4">
+                  <div className="p-3 bg-success/10 rounded-lg">
+                    <Users className="h-6 w-6 text-success" />
+                  </div>
+                  <div>
+                    <p className="text-sm font-semibold text-muted-foreground uppercase tracking-wide mb-1">Peak Crew</p>
+                    <p className="text-3xl font-bold text-foreground mb-1">
+                      {Math.max(...timeline.map(e => e.crewCount || 0))} People
+                    </p>
+                    <p className="text-sm text-muted-foreground">Maximum staffing</p>
+                  </div>
                 </div>
-              </div>
-            </Card>
+              </Card>
+            )}
           </div>
         </div>
       </div>
