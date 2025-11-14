@@ -59,7 +59,7 @@ export function ProposalHeader({ eventDetails, totalCost }: ProposalHeaderProps)
         />
 
         {/* Soft Cloudy Gradient Overlay - Creates a smooth blend from image to white */}
-        <div className="absolute inset-0 bg-gradient-to-b from-transparent from-0% via-transparent via-30% via-background/30 via-50% via-background/60 via-70% via-background/85 via-85% to-background to-100%"></div>
+        <div className="absolute inset-0 bg-gradient-to-b from-transparent from-0% via-transparent via-10% via-background/40 via-30% via-background/65 via-50% via-background/90 via-70% to-background to-90%"></div>
 
         {/* Content - positioned over the gradient */}
         <div className="relative">
