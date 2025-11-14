@@ -513,56 +513,51 @@ export function TimelineView({ timeline, totalCost, labor, pricing }: TimelineVi
         )}
 
         <div className="mt-8 pt-8 border-t border-card-border bg-muted/30 -mx-6 px-6 pb-6 rounded-b-lg">
-          <div className="mb-8">
+          <div className="mb-6">
             <h3 className="text-2xl font-semibold text-foreground mb-2">
               {viewMode === 'event' ? 'Timeline Summary' : 'Labor Summary'}
             </h3>
             <div className="h-1 w-20 bg-primary rounded"></div>
           </div>
-          <div className={`grid grid-cols-1 md:grid-cols-2 ${viewMode === 'event' && timeline.some(e => e.crewCount) ? 'lg:grid-cols-4' : 'lg:grid-cols-3'} gap-6`}>
-            {/* Duration Summary */}
-            <Card className="border border-card-border shadow-sm hover:shadow-md transition-shadow p-6 bg-background">
-              <div className="flex flex-col">
-                <div className="flex items-center gap-3 mb-4">
-                  <div className="p-2 bg-muted rounded">
-                    <Calendar className="h-5 w-5 text-foreground" />
+
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* Left Column - Summary Cards */}
+            <div className="space-y-4">
+              {/* Duration */}
+              <div className="flex items-center justify-between p-4 bg-background rounded-lg border border-card-border">
+                <div className="flex items-center gap-3">
+                  <Calendar className="h-5 w-5 text-primary" />
+                  <div>
+                    <p className="text-xs text-muted-foreground uppercase">
+                      {viewMode === 'event' ? 'Event Duration' : 'Labor Duration'}
+                    </p>
+                    <p className="text-2xl font-bold text-foreground">
+                      {viewMode === 'event' ? timeline.length : laborGroups.length} Days
+                    </p>
+                    {viewMode === 'event' && timeline.length > 0 && (
+                      <p className="text-xs text-muted-foreground">
+                        {format(new Date(timeline[0]?.date), 'MMM dd')} - {format(new Date(timeline[timeline.length - 1]?.date), 'MMM dd, yyyy')}
+                      </p>
+                    )}
+                    {viewMode === 'labor' && laborGroups.length > 0 && (
+                      <p className="text-xs text-muted-foreground">
+                        {format(new Date(laborGroups[0]?.date), 'MMM dd')} - {format(new Date(laborGroups[laborGroups.length - 1]?.date), 'MMM dd, yyyy')}
+                      </p>
+                    )}
                   </div>
-                  <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                    {viewMode === 'event' ? 'Event Duration' : 'Labor Duration'}
-                  </p>
-                </div>
-                <div>
-                  <p className="text-4xl font-bold text-foreground mb-2">
-                    {viewMode === 'event' ? timeline.length : laborGroups.length}
-                  </p>
-                  <p className="text-sm text-muted-foreground font-medium">Days</p>
-                  {viewMode === 'event' && timeline.length > 0 && (
-                    <p className="text-xs text-muted-foreground mt-2">
-                      {format(new Date(timeline[0]?.date), 'MMM dd')} - {format(new Date(timeline[timeline.length - 1]?.date), 'MMM dd, yyyy')}
-                    </p>
-                  )}
-                  {viewMode === 'labor' && laborGroups.length > 0 && (
-                    <p className="text-xs text-muted-foreground mt-2">
-                      {format(new Date(laborGroups[0]?.date), 'MMM dd')} - {format(new Date(laborGroups[laborGroups.length - 1]?.date), 'MMM dd, yyyy')}
-                    </p>
-                  )}
                 </div>
               </div>
-            </Card>
 
-            {/* Total Cost */}
-            <Card className="border border-card-border shadow-sm hover:shadow-md transition-shadow p-6 bg-background">
-              <div className="flex flex-col">
-                <div className="flex items-center gap-3 mb-4">
-                  <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
+              {/* Total Cost */}
+              <div className="flex items-center justify-between p-4 bg-background rounded-lg border border-card-border">
+                <div className="flex-1">
+                  <p className="text-xs text-muted-foreground uppercase">
                     {viewMode === 'event' ? 'Proposal Total' : 'Total Labor Cost'}
                   </p>
-                </div>
-                <div>
-                  <p className="text-4xl font-bold text-foreground mb-2">
+                  <p className="text-2xl font-bold text-primary">
                     {formatCurrency(viewMode === 'event' ? totalCost : laborTotal)}
                   </p>
-                  <p className="text-xs text-muted-foreground mt-2">
+                  <p className="text-xs text-muted-foreground">
                     {viewMode === 'event'
                       ? 'All equipment, labor, and services included'
                       : 'All labor and crew costs'
@@ -570,138 +565,70 @@ export function TimelineView({ timeline, totalCost, labor, pricing }: TimelineVi
                   </p>
                 </div>
               </div>
-            </Card>
 
-            {/* Total Hours */}
-            <Card className="border border-card-border shadow-sm hover:shadow-md transition-shadow p-6 bg-background">
-              <div className="flex flex-col">
-                <div className="flex items-center gap-3 mb-4">
-                  <div className="p-2 bg-muted rounded">
-                    <Clock className="h-5 w-5 text-foreground" />
+              {/* Total Hours */}
+              <div className="flex items-center justify-between p-4 bg-background rounded-lg border border-card-border">
+                <div className="flex items-center gap-3">
+                  <Clock className="h-5 w-5 text-primary" />
+                  <div>
+                    <p className="text-xs text-muted-foreground uppercase">Total Hours</p>
+                    <p className="text-2xl font-bold text-foreground">
+                      {viewMode === 'event'
+                        ? timeline.reduce((total, event) => {
+                            const [startHour, startMin] = event.startTime.split(':').map(Number);
+                            const [endHour, endMin] = event.endTime.split(':').map(Number);
+                            return total + ((endHour * 60 + endMin) - (startHour * 60 + startMin)) / 60;
+                          }, 0).toFixed(0)
+                        : labor?.reduce((total, task) => {
+                            return total + task.regular_hours + task.overtime_hours + task.double_time_hours;
+                          }, 0).toFixed(0) || 0
+                      } Hours
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      {viewMode === 'event' ? 'Production time' : 'Total labor hours'}
+                    </p>
                   </div>
-                  <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Total Hours</p>
-                </div>
-                <div>
-                  <p className="text-4xl font-bold text-foreground mb-2">
-                    {viewMode === 'event'
-                      ? timeline.reduce((total, event) => {
-                          const [startHour, startMin] = event.startTime.split(':').map(Number);
-                          const [endHour, endMin] = event.endTime.split(':').map(Number);
-                          return total + ((endHour * 60 + endMin) - (startHour * 60 + startMin)) / 60;
-                        }, 0).toFixed(0)
-                      : labor?.reduce((total, task) => {
-                          return total + task.regular_hours + task.overtime_hours + task.double_time_hours;
-                        }, 0).toFixed(0) || 0
-                    }
-                  </p>
-                  <p className="text-sm text-muted-foreground font-medium">Hours</p>
-                  <p className="text-xs text-muted-foreground mt-2">
-                    {viewMode === 'event' ? 'Production time' : 'Total labor hours'}
-                  </p>
                 </div>
               </div>
-            </Card>
+            </div>
 
-            {/* Peak Crew - Only show if crew data is available */}
-            {viewMode === 'event' && timeline.some(e => e.crewCount && e.crewCount > 0) && (
-              <Card className="border border-card-border shadow-sm hover:shadow-md transition-shadow p-6 bg-background">
-                <div className="flex flex-col">
-                  <div className="flex items-center gap-3 mb-4">
-                    <div className="p-2 bg-muted rounded">
-                      <Users className="h-5 w-5 text-foreground" />
-                    </div>
-                    <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Peak Crew</p>
+            {/* Right Column - Financial Breakdown */}
+            {pricing && (
+              <div className="p-6 bg-background rounded-lg border border-card-border">
+                <h4 className="text-sm font-semibold text-muted-foreground uppercase mb-4">Financial Breakdown</h4>
+                <div className="space-y-2">
+                  <div className="flex justify-between items-center text-sm">
+                    <span className="text-muted-foreground">Product Subtotal:</span>
+                    <span className="font-semibold">{formatCurrency(pricing.productSubtotal)}</span>
                   </div>
-                  <div>
-                    <p className="text-4xl font-bold text-foreground mb-2">
-                      {Math.max(...timeline.map(e => e.crewCount || 0))}
-                    </p>
-                    <p className="text-sm text-muted-foreground font-medium">People</p>
-                    <p className="text-xs text-muted-foreground mt-2">Maximum staffing</p>
+                  <div className="flex justify-between items-center text-sm">
+                    <span className="text-muted-foreground">Discount:</span>
+                    <span className="font-semibold text-success">({formatCurrency(Math.abs(pricing.productDiscount))})</span>
+                  </div>
+                  <div className="flex justify-between items-center text-sm pt-2 border-t border-card-border/50">
+                    <span className="font-medium">Product Total:</span>
+                    <span className="font-semibold">{formatCurrency(pricing.productTotal)}</span>
+                  </div>
+                  <div className="flex justify-between items-center text-sm">
+                    <span className="font-medium">Labor Total:</span>
+                    <span className="font-semibold">{formatCurrency(pricing.laborTotal)}</span>
+                  </div>
+                  <div className="flex justify-between items-center text-sm pt-2 border-t border-card-border/50">
+                    <span className="text-muted-foreground">Service Charge:</span>
+                    <span className="font-semibold">{formatCurrency(pricing.serviceCharge)}</span>
+                  </div>
+                  <div className="flex justify-between items-center text-sm">
+                    <span className="text-muted-foreground">Tax:</span>
+                    <span className="font-semibold">{formatCurrency(pricing.taxAmount)}</span>
+                  </div>
+                  <div className="flex justify-between items-center pt-3 border-t-2 border-card-border">
+                    <span className="text-lg font-bold">Job Total:</span>
+                    <span className="text-xl font-bold text-primary">{formatCurrency(pricing.totalCost)}</span>
                   </div>
                 </div>
-              </Card>
-            )}
-
-            {/* Peak Crew for Labor View */}
-            {viewMode === 'labor' && labor && labor.length > 0 && (
-              <Card className="border border-card-border shadow-sm hover:shadow-md transition-shadow p-6 bg-background">
-                <div className="flex flex-col">
-                  <div className="flex items-center gap-3 mb-4">
-                    <div className="p-2 bg-muted rounded">
-                      <Users className="h-5 w-5 text-foreground" />
-                    </div>
-                    <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Peak Crew</p>
-                  </div>
-                  <div>
-                    <p className="text-4xl font-bold text-foreground mb-2">
-                      {Math.max(...labor.map(task => task.quantity || 0))}
-                    </p>
-                    <p className="text-sm text-muted-foreground font-medium">People</p>
-                    <p className="text-xs text-muted-foreground mt-2">Largest crew size</p>
-                  </div>
-                </div>
-              </Card>
+              </div>
             )}
           </div>
-
-          {/* Financial Breakdown */}
-          {pricing && (
-            <div className="mt-8 pt-8 border-t border-card-border">
-              <div className="mb-6">
-                <h3 className="text-xl font-semibold text-foreground mb-2">Financial Breakdown</h3>
-                <div className="h-1 w-16 bg-primary rounded"></div>
-              </div>
-
-              <Card className="border border-card-border shadow-sm bg-background">
-                <div className="p-6">
-                  <div className="space-y-3">
-                    {/* Product Subtotal */}
-                    <div className="flex justify-between items-center py-2">
-                      <span className="text-muted-foreground">Product Subtotal:</span>
-                      <span className="font-semibold text-foreground">{formatCurrency(pricing.productSubtotal)}</span>
-                    </div>
-
-                    {/* Discount */}
-                    <div className="flex justify-between items-center py-2">
-                      <span className="text-muted-foreground">Discount:</span>
-                      <span className="font-semibold text-success">({formatCurrency(Math.abs(pricing.productDiscount))})</span>
-                    </div>
-
-                    {/* Product Total */}
-                    <div className="flex justify-between items-center py-2 border-t border-card-border/50 pt-3">
-                      <span className="text-foreground font-medium">Product Total:</span>
-                      <span className="font-semibold text-foreground">{formatCurrency(pricing.productTotal)}</span>
-                    </div>
-
-                    {/* Labor Total */}
-                    <div className="flex justify-between items-center py-2">
-                      <span className="text-foreground font-medium">Labor Total:</span>
-                      <span className="font-semibold text-foreground">{formatCurrency(pricing.laborTotal)}</span>
-                    </div>
-
-                    {/* Service Charge */}
-                    <div className="flex justify-between items-center py-2 border-t border-card-border/50 pt-3">
-                      <span className="text-muted-foreground">Service Charge:</span>
-                      <span className="font-semibold text-foreground">{formatCurrency(pricing.serviceCharge)}</span>
-                    </div>
-
-                    {/* Tax */}
-                    <div className="flex justify-between items-center py-2">
-                      <span className="text-muted-foreground">Tax:</span>
-                      <span className="font-semibold text-foreground">{formatCurrency(pricing.taxAmount)}</span>
-                    </div>
-
-                    {/* Job Total */}
-                    <div className="flex justify-between items-center py-3 border-t-2 border-card-border pt-4">
-                      <span className="text-lg font-bold text-foreground">Job Total:</span>
-                      <span className="text-2xl font-bold text-primary">{formatCurrency(pricing.totalCost)}</span>
-                    </div>
-                  </div>
-                </div>
-              </Card>
-            </div>
-          )}
         </div>
       </div>
     </Card>
