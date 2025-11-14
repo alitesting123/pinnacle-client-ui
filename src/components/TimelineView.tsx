@@ -203,8 +203,7 @@ export function TimelineView({ timeline, totalCost, labor }: TimelineViewProps) 
 
                         {/* Cost Section */}
                         <div className="flex flex-col items-end ml-4">
-                          <div className="flex items-center gap-2 text-primary mb-2">
-                            <DollarSign className="h-5 w-5" />
+                          <div className="text-primary mb-2">
                             <span className="text-2xl font-bold">{formatCurrency(eventWithLaborCost)}</span>
                           </div>
                           <div className="text-xs text-right space-y-1 text-muted-foreground">
@@ -410,8 +409,7 @@ export function TimelineView({ timeline, totalCost, labor }: TimelineViewProps) 
 
                           {/* Cost Section */}
                           <div className="flex flex-col items-end ml-4">
-                            <div className="flex items-center gap-2 text-primary mb-2">
-                              <DollarSign className="h-5 w-5" />
+                            <div className="text-primary mb-2">
                               <span className="text-2xl font-bold">{formatCurrency(group.total)}</span>
                             </div>
                             <div className="text-xs text-right text-muted-foreground">
