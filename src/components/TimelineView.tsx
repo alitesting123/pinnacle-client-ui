@@ -213,22 +213,25 @@ export function TimelineView({ timeline }: TimelineViewProps) {
           </div>
         </div>
 
-        <div className="mt-8 pt-6 border-t-2 border-card-border">
-          <div className="bg-gradient-to-r from-primary/5 to-transparent p-6 rounded-lg mb-6">
-            <h3 className="text-2xl font-bold text-foreground mb-2">Timeline Summary</h3>
-            <p className="text-sm text-muted-foreground">Key metrics across all event phases</p>
+        <div className="mt-8 pt-8 border-t border-card-border">
+          <div className="mb-8">
+            <h3 className="text-2xl font-semibold text-foreground mb-2">Timeline Summary</h3>
+            <div className="h-1 w-20 bg-primary rounded"></div>
           </div>
           <div className={`grid grid-cols-1 md:grid-cols-2 ${timeline.some(e => e.crewCount) ? 'lg:grid-cols-4' : 'lg:grid-cols-3'} gap-6`}>
             {/* Duration Summary */}
-            <Card className="border-2 border-card-border shadow-lg hover:shadow-xl transition-shadow p-6 bg-gradient-to-br from-background to-secondary/5">
-              <div className="flex items-start gap-4">
-                <div className="p-3 bg-primary/10 rounded-lg">
-                  <Calendar className="h-6 w-6 text-primary" />
+            <Card className="border border-card-border shadow-sm hover:shadow-md transition-shadow p-6 bg-background">
+              <div className="flex flex-col">
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="p-2 bg-muted rounded">
+                    <Calendar className="h-5 w-5 text-foreground" />
+                  </div>
+                  <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Event Duration</p>
                 </div>
                 <div>
-                  <p className="text-sm font-semibold text-muted-foreground uppercase tracking-wide mb-1">Event Duration</p>
-                  <p className="text-3xl font-bold text-foreground mb-1">{timeline.length} Days</p>
-                  <p className="text-sm text-muted-foreground">
+                  <p className="text-4xl font-bold text-foreground mb-2">{timeline.length}</p>
+                  <p className="text-sm text-muted-foreground font-medium">Days</p>
+                  <p className="text-xs text-muted-foreground mt-2">
                     {format(new Date(timeline[0]?.date), 'MMM dd')} - {format(new Date(timeline[timeline.length - 1]?.date), 'MMM dd, yyyy')}
                   </p>
                 </div>
@@ -236,54 +239,62 @@ export function TimelineView({ timeline }: TimelineViewProps) {
             </Card>
 
             {/* Total Cost */}
-            <Card className="border-2 border-card-border shadow-lg hover:shadow-xl transition-shadow p-6 bg-gradient-to-br from-background to-primary/5">
-              <div className="flex items-start gap-4">
-                <div className="p-3 bg-primary/10 rounded-lg">
-                  <DollarSign className="h-6 w-6 text-primary" />
+            <Card className="border border-card-border shadow-sm hover:shadow-md transition-shadow p-6 bg-background">
+              <div className="flex flex-col">
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="p-2 bg-muted rounded">
+                    <DollarSign className="h-5 w-5 text-foreground" />
+                  </div>
+                  <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Timeline Total</p>
                 </div>
                 <div>
-                  <p className="text-sm font-semibold text-muted-foreground uppercase tracking-wide mb-1">Timeline Total</p>
-                  <p className="text-3xl font-bold text-primary mb-1">
+                  <p className="text-4xl font-bold text-foreground mb-2">
                     {formatCurrency(timeline.reduce((total, event) => total + event.cost, 0))}
                   </p>
-                  <p className="text-sm text-muted-foreground">All phases included</p>
+                  <p className="text-xs text-muted-foreground mt-2">All phases included</p>
                 </div>
               </div>
             </Card>
 
             {/* Total Hours */}
-            <Card className="border-2 border-card-border shadow-lg hover:shadow-xl transition-shadow p-6 bg-gradient-to-br from-background to-accent/5">
-              <div className="flex items-start gap-4">
-                <div className="p-3 bg-accent/10 rounded-lg">
-                  <Clock className="h-6 w-6 text-accent-foreground" />
+            <Card className="border border-card-border shadow-sm hover:shadow-md transition-shadow p-6 bg-background">
+              <div className="flex flex-col">
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="p-2 bg-muted rounded">
+                    <Clock className="h-5 w-5 text-foreground" />
+                  </div>
+                  <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Total Hours</p>
                 </div>
                 <div>
-                  <p className="text-sm font-semibold text-muted-foreground uppercase tracking-wide mb-1">Total Hours</p>
-                  <p className="text-3xl font-bold text-foreground mb-1">
+                  <p className="text-4xl font-bold text-foreground mb-2">
                     {timeline.reduce((total, event) => {
                       const [startHour, startMin] = event.startTime.split(':').map(Number);
                       const [endHour, endMin] = event.endTime.split(':').map(Number);
                       return total + ((endHour * 60 + endMin) - (startHour * 60 + startMin)) / 60;
-                    }, 0).toFixed(0)} hrs
+                    }, 0).toFixed(0)}
                   </p>
-                  <p className="text-sm text-muted-foreground">Production time</p>
+                  <p className="text-sm text-muted-foreground font-medium">Hours</p>
+                  <p className="text-xs text-muted-foreground mt-2">Production time</p>
                 </div>
               </div>
             </Card>
 
             {/* Peak Crew - Only show if crew data is available */}
             {timeline.some(e => e.crewCount && e.crewCount > 0) && (
-              <Card className="border-2 border-card-border shadow-lg hover:shadow-xl transition-shadow p-6 bg-gradient-to-br from-background to-success/5">
-                <div className="flex items-start gap-4">
-                  <div className="p-3 bg-success/10 rounded-lg">
-                    <Users className="h-6 w-6 text-success" />
+              <Card className="border border-card-border shadow-sm hover:shadow-md transition-shadow p-6 bg-background">
+                <div className="flex flex-col">
+                  <div className="flex items-center gap-3 mb-4">
+                    <div className="p-2 bg-muted rounded">
+                      <Users className="h-5 w-5 text-foreground" />
+                    </div>
+                    <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Peak Crew</p>
                   </div>
                   <div>
-                    <p className="text-sm font-semibold text-muted-foreground uppercase tracking-wide mb-1">Peak Crew</p>
-                    <p className="text-3xl font-bold text-foreground mb-1">
-                      {Math.max(...timeline.map(e => e.crewCount || 0))} People
+                    <p className="text-4xl font-bold text-foreground mb-2">
+                      {Math.max(...timeline.map(e => e.crewCount || 0))}
                     </p>
-                    <p className="text-sm text-muted-foreground">Maximum staffing</p>
+                    <p className="text-sm text-muted-foreground font-medium">People</p>
+                    <p className="text-xs text-muted-foreground mt-2">Maximum staffing</p>
                   </div>
                 </div>
               </Card>
