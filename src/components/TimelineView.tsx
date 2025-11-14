@@ -548,24 +548,6 @@ export function TimelineView({ timeline, totalCost, labor, pricing }: TimelineVi
                 </div>
               </div>
 
-              {/* Total Cost */}
-              <div className="flex items-center justify-between p-4 bg-background rounded-lg border border-card-border">
-                <div className="flex-1">
-                  <p className="text-xs text-muted-foreground uppercase">
-                    {viewMode === 'event' ? 'Proposal Total' : 'Total Labor Cost'}
-                  </p>
-                  <p className="text-2xl font-bold text-primary">
-                    {formatCurrency(viewMode === 'event' ? totalCost : laborTotal)}
-                  </p>
-                  <p className="text-xs text-muted-foreground">
-                    {viewMode === 'event'
-                      ? 'All equipment, labor, and services included'
-                      : 'All labor and crew costs'
-                    }
-                  </p>
-                </div>
-              </div>
-
               {/* Total Hours */}
               <div className="flex items-center justify-between p-4 bg-background rounded-lg border border-card-border">
                 <div className="flex items-center gap-3">
