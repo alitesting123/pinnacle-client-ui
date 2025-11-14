@@ -159,6 +159,16 @@ class ApiService {
     }
   }
 
+  async getProposalQuestions(proposalId: string): Promise<any[]> {
+    try {
+      const response = await this.request<QuestionsResponse>(`/api/v1/proposals/${proposalId}/questions`);
+      return response.questions || [];
+    } catch (error) {
+      console.error('Failed to get proposal questions:', error);
+      return [];
+    }
+  }
+
   async createQuestion(questionData: any): Promise<boolean> {
     try {
       await this.request<MessageResponse>('/api/v1/questions', {
@@ -169,6 +179,32 @@ class ApiService {
     } catch (error) {
       console.error('Failed to create question:', error);
       return false;
+    }
+  }
+
+  async createProposalQuestion(proposalId: string, questionData: any): Promise<any> {
+    try {
+      const response = await this.request<any>(`/api/v1/proposals/${proposalId}/questions`, {
+        method: 'POST',
+        body: JSON.stringify(questionData),
+      });
+      return response;
+    } catch (error) {
+      console.error('Failed to create proposal question:', error);
+      throw error;
+    }
+  }
+
+  async answerQuestion(questionId: string, answer: string): Promise<any> {
+    try {
+      const response = await this.request<any>(`/api/v1/questions/${questionId}/answer`, {
+        method: 'POST',
+        body: JSON.stringify({ answer }),
+      });
+      return response;
+    } catch (error) {
+      console.error('Failed to answer question:', error);
+      throw error;
     }
   }
 
