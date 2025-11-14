@@ -1,15 +1,16 @@
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Calendar, Clock, MapPin, DollarSign, Users, User, CheckCircle2, AlertCircle, FileText } from "lucide-react";
-import { TimelineEvent } from "@/types/proposal";
+import { Calendar, Clock, MapPin, DollarSign, Users, User, CheckCircle2, AlertCircle, FileText, Briefcase } from "lucide-react";
+import { TimelineEvent, LaborTask } from "@/types/proposal";
 import { format } from "date-fns";
 
 interface TimelineViewProps {
   timeline: TimelineEvent[];
   totalCost: number;
+  labor?: LaborTask[];
 }
 
-export function TimelineView({ timeline, totalCost }: TimelineViewProps) {
+export function TimelineView({ timeline, totalCost, labor }: TimelineViewProps) {
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
@@ -41,6 +42,14 @@ export function TimelineView({ timeline, totalCost }: TimelineViewProps) {
     const hours = Math.floor(durationMinutes / 60);
     const minutes = durationMinutes % 60;
     return minutes > 0 ? `${hours}h ${minutes}m` : `${hours} hours`;
+  };
+
+  const formatTime = (time: string) => {
+    // Convert "HH:MM:SS" to "HH:MM AM/PM"
+    const [hour, minute] = time.split(':').map(Number);
+    const period = hour >= 12 ? 'PM' : 'AM';
+    const displayHour = hour === 0 ? 12 : hour > 12 ? hour - 12 : hour;
+    return `${displayHour}:${minute.toString().padStart(2, '0')} ${period}`;
   };
 
   return (
@@ -213,6 +222,90 @@ export function TimelineView({ timeline, totalCost }: TimelineViewProps) {
             ))}
           </div>
         </div>
+
+        {/* Labor Schedule Section */}
+        {labor && labor.length > 0 && (
+          <div className="mt-8 pt-8 border-t border-card-border">
+            <div className="flex items-center gap-3 mb-6">
+              <Briefcase className="h-6 w-6 text-primary" />
+              <h2 className="text-2xl font-bold text-foreground">Labor Schedule</h2>
+            </div>
+
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead className="border-b-2 border-card-border bg-muted/30">
+                  <tr className="text-left">
+                    <th className="p-4 text-sm font-semibold text-muted-foreground uppercase tracking-wide">Task</th>
+                    <th className="p-4 text-sm font-semibold text-muted-foreground uppercase tracking-wide text-center">Qty</th>
+                    <th className="p-4 text-sm font-semibold text-muted-foreground uppercase tracking-wide">Date</th>
+                    <th className="p-4 text-sm font-semibold text-muted-foreground uppercase tracking-wide">Time</th>
+                    <th className="p-4 text-sm font-semibold text-muted-foreground uppercase tracking-wide text-center">Hours (ST/OT/DT)</th>
+                    <th className="p-4 text-sm font-semibold text-muted-foreground uppercase tracking-wide text-right">Rate</th>
+                    <th className="p-4 text-sm font-semibold text-muted-foreground uppercase tracking-wide text-right">Subtotal</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {labor.map((task, index) => (
+                    <tr key={task.id} className={`border-b border-card-border/50 hover:bg-secondary/20 transition-colors ${index % 2 === 0 ? 'bg-background' : 'bg-muted/10'}`}>
+                      <td className="p-4">
+                        <div>
+                          <p className="font-medium text-foreground">{task.task_name}</p>
+                          {task.notes && (
+                            <p className="text-xs text-muted-foreground mt-1 italic">{task.notes}</p>
+                          )}
+                        </div>
+                      </td>
+                      <td className="p-4 text-center font-medium text-foreground">
+                        {task.quantity}
+                      </td>
+                      <td className="p-4 text-muted-foreground">
+                        {format(new Date(task.date), 'MMM dd, yyyy')}
+                      </td>
+                      <td className="p-4 text-muted-foreground whitespace-nowrap">
+                        {formatTime(task.start_time)} - {formatTime(task.end_time)}
+                      </td>
+                      <td className="p-4 text-center">
+                        <div className="flex items-center justify-center gap-2 text-sm">
+                          {task.regular_hours > 0 && (
+                            <Badge variant="secondary" className="font-mono">
+                              ST: {task.regular_hours}
+                            </Badge>
+                          )}
+                          {task.overtime_hours > 0 && (
+                            <Badge variant="secondary" className="font-mono bg-yellow-100 text-yellow-800">
+                              OT: {task.overtime_hours}
+                            </Badge>
+                          )}
+                          {task.double_time_hours > 0 && (
+                            <Badge variant="secondary" className="font-mono bg-orange-100 text-orange-800">
+                              DT: {task.double_time_hours}
+                            </Badge>
+                          )}
+                        </div>
+                      </td>
+                      <td className="p-4 text-right font-semibold text-foreground">
+                        {formatCurrency(task.hourly_rate)}
+                      </td>
+                      <td className="p-4 text-right font-bold text-primary">
+                        {formatCurrency(task.subtotal)}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+                <tfoot className="border-t-2 border-card-border bg-muted/30">
+                  <tr>
+                    <td colSpan={6} className="p-4 text-right font-semibold text-foreground">
+                      Total Labor Cost:
+                    </td>
+                    <td className="p-4 text-right font-bold text-primary text-lg">
+                      {formatCurrency(labor.reduce((sum, task) => sum + task.subtotal, 0))}
+                    </td>
+                  </tr>
+                </tfoot>
+              </table>
+            </div>
+          </div>
+        )}
 
         <div className="mt-8 pt-8 border-t border-card-border bg-muted/30 -mx-6 px-6 pb-6 rounded-b-lg">
           <div className="mb-8">
