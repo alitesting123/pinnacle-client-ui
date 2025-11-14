@@ -512,6 +512,7 @@ export function ProposalDashboard({ proposalData: initialProposalData }: Proposa
                 timeline={proposalData.timeline}
                 totalCost={totalCost}
                 labor={proposalData.labor}
+                pricing={proposalData.pricing}
               />
             </TabsContent>
 

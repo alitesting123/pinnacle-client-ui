@@ -57,6 +57,12 @@ export interface ProposalData {
   timeline: TimelineEvent[];
   labor?: LaborTask[];
   pricing?: {
+    productSubtotal: number;
+    productDiscount: number;
+    productTotal: number;
+    laborTotal: number;
+    serviceCharge: number;
+    taxAmount: number;
     totalCost: number;
   };
 }

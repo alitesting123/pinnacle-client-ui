@@ -10,9 +10,18 @@ interface TimelineViewProps {
   timeline: TimelineEvent[];
   totalCost: number;
   labor?: LaborTask[];
+  pricing?: {
+    productSubtotal: number;
+    productDiscount: number;
+    productTotal: number;
+    laborTotal: number;
+    serviceCharge: number;
+    taxAmount: number;
+    totalCost: number;
+  };
 }
 
-export function TimelineView({ timeline, totalCost, labor }: TimelineViewProps) {
+export function TimelineView({ timeline, totalCost, labor, pricing }: TimelineViewProps) {
   const [viewMode, setViewMode] = useState<'event' | 'labor'>('event');
 
   const formatCurrency = (amount: number) => {
@@ -635,6 +644,64 @@ export function TimelineView({ timeline, totalCost, labor }: TimelineViewProps) 
               </Card>
             )}
           </div>
+
+          {/* Financial Breakdown */}
+          {pricing && (
+            <div className="mt-8 pt-8 border-t border-card-border">
+              <div className="mb-6">
+                <h3 className="text-xl font-semibold text-foreground mb-2">Financial Breakdown</h3>
+                <div className="h-1 w-16 bg-primary rounded"></div>
+              </div>
+
+              <Card className="border border-card-border shadow-sm bg-background">
+                <div className="p-6">
+                  <div className="space-y-3">
+                    {/* Product Subtotal */}
+                    <div className="flex justify-between items-center py-2">
+                      <span className="text-muted-foreground">Product Subtotal:</span>
+                      <span className="font-semibold text-foreground">{formatCurrency(pricing.productSubtotal)}</span>
+                    </div>
+
+                    {/* Discount */}
+                    <div className="flex justify-between items-center py-2">
+                      <span className="text-muted-foreground">Discount:</span>
+                      <span className="font-semibold text-success">({formatCurrency(Math.abs(pricing.productDiscount))})</span>
+                    </div>
+
+                    {/* Product Total */}
+                    <div className="flex justify-between items-center py-2 border-t border-card-border/50 pt-3">
+                      <span className="text-foreground font-medium">Product Total:</span>
+                      <span className="font-semibold text-foreground">{formatCurrency(pricing.productTotal)}</span>
+                    </div>
+
+                    {/* Labor Total */}
+                    <div className="flex justify-between items-center py-2">
+                      <span className="text-foreground font-medium">Labor Total:</span>
+                      <span className="font-semibold text-foreground">{formatCurrency(pricing.laborTotal)}</span>
+                    </div>
+
+                    {/* Service Charge */}
+                    <div className="flex justify-between items-center py-2 border-t border-card-border/50 pt-3">
+                      <span className="text-muted-foreground">Service Charge:</span>
+                      <span className="font-semibold text-foreground">{formatCurrency(pricing.serviceCharge)}</span>
+                    </div>
+
+                    {/* Tax */}
+                    <div className="flex justify-between items-center py-2">
+                      <span className="text-muted-foreground">Tax:</span>
+                      <span className="font-semibold text-foreground">{formatCurrency(pricing.taxAmount)}</span>
+                    </div>
+
+                    {/* Job Total */}
+                    <div className="flex justify-between items-center py-3 border-t-2 border-card-border pt-4">
+                      <span className="text-lg font-bold text-foreground">Job Total:</span>
+                      <span className="text-2xl font-bold text-primary">{formatCurrency(pricing.totalCost)}</span>
+                    </div>
+                  </div>
+                </div>
+              </Card>
+            </div>
+          )}
         </div>
       </div>
     </Card>
