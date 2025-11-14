@@ -242,16 +242,13 @@ export function TimelineView({ timeline }: TimelineViewProps) {
             <Card className="border border-card-border shadow-sm hover:shadow-md transition-shadow p-6 bg-background">
               <div className="flex flex-col">
                 <div className="flex items-center gap-3 mb-4">
-                  <div className="p-2 bg-muted rounded">
-                    <DollarSign className="h-5 w-5 text-foreground" />
-                  </div>
-                  <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Timeline Total</p>
+                  <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Proposal Total</p>
                 </div>
                 <div>
                   <p className="text-4xl font-bold text-foreground mb-2">
                     {formatCurrency(timeline.reduce((total, event) => total + event.cost, 0))}
                   </p>
-                  <p className="text-xs text-muted-foreground mt-2">All phases included</p>
+                  <p className="text-xs text-muted-foreground mt-2">All equipment, labor, and services included</p>
                 </div>
               </div>
             </Card>
