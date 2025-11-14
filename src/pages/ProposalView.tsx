@@ -105,12 +105,21 @@ const ProposalView = () => {
       const data = await response.json();
       console.log('✅ Proposal loaded successfully');
       console.log('Proposal ID:', data.eventDetails?.jobNumber);
-      
+
+      // 🔍 DEBUG: Check first item structure
+      if (data.sections && data.sections[0]?.items && data.sections[0].items[0]) {
+        console.log('📦 First item from API:', data.sections[0].items[0]);
+        console.log('  - quantity:', data.sections[0].items[0].quantity);
+        console.log('  - price:', data.sections[0].items[0].price);
+        console.log('  - discount:', data.sections[0].items[0].discount);
+        console.log('  - subtotal:', data.sections[0].items[0].subtotal);
+      }
+
       // Extract token info if provided by backend
       if (data.access_token_info) {
         setTokenInfo(data.access_token_info);
       }
-      
+
       setProposalData(data);
       
     } catch (err) {
