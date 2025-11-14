@@ -500,7 +500,7 @@ export function ProposalDashboard({ proposalData: initialProposalData }: Proposa
             </TabsContent>
 
             <TabsContent value="timeline" className="mt-8">
-              <TimelineView timeline={proposalData.timeline} />
+              <TimelineView timeline={proposalData.timeline} totalCost={totalCost} />
             </TabsContent>
 
             <TabsContent value="questions" className="mt-8">

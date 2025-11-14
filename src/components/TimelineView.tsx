@@ -6,9 +6,10 @@ import { format } from "date-fns";
 
 interface TimelineViewProps {
   timeline: TimelineEvent[];
+  totalCost: number;
 }
 
-export function TimelineView({ timeline }: TimelineViewProps) {
+export function TimelineView({ timeline, totalCost }: TimelineViewProps) {
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
@@ -246,7 +247,7 @@ export function TimelineView({ timeline }: TimelineViewProps) {
                 </div>
                 <div>
                   <p className="text-4xl font-bold text-foreground mb-2">
-                    {formatCurrency(timeline.reduce((total, event) => total + event.cost, 0))}
+                    {formatCurrency(totalCost)}
                   </p>
                   <p className="text-xs text-muted-foreground mt-2">All equipment, labor, and services included</p>
                 </div>
