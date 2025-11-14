@@ -52,6 +52,16 @@ export function TimelineView({ timeline, totalCost, labor }: TimelineViewProps) 
     return `${displayHour}:${minute.toString().padStart(2, '0')} ${period}`;
   };
 
+  // Helper function to get labor tasks for a specific date
+  const getLaborForDate = (eventDate: string): LaborTask[] => {
+    if (!labor) return [];
+    return labor.filter(task => {
+      const taskDate = new Date(task.date).toISOString().split('T')[0];
+      const eDate = new Date(eventDate).toISOString().split('T')[0];
+      return taskDate === eDate;
+    });
+  };
+
   return (
     <Card className="border-card-border shadow-md">
       <div className="p-6">
@@ -63,9 +73,11 @@ export function TimelineView({ timeline, totalCost, labor }: TimelineViewProps) 
         <div className="relative">
           {/* Timeline line */}
           <div className="absolute left-8 top-0 bottom-0 w-0.5 bg-border"></div>
-          
+
           <div className="space-y-8">
-            {timeline.map((event, index) => (
+            {timeline.map((event, index) => {
+              const laborTasks = getLaborForDate(event.date);
+              return (
               <div key={event.id} className="relative flex items-start gap-6">
                 {/* Timeline dot */}
                 <div className="relative z-10 flex-shrink-0">
@@ -215,97 +227,93 @@ export function TimelineView({ timeline, totalCost, labor }: TimelineViewProps) 
                           </div>
                         )}
                       </div>
+
+                      {/* Labor Tasks for this day */}
+                      {laborTasks.length > 0 && (
+                        <div className="mt-6 pt-6 border-t border-card-border">
+                          <h4 className="font-semibold text-foreground mb-4 flex items-center gap-2">
+                            <Briefcase className="h-4 w-4" />
+                            Labor Schedule for this Day
+                          </h4>
+                          <div className="overflow-x-auto">
+                            <table className="w-full text-sm">
+                              <thead className="border-b border-card-border bg-muted/20">
+                                <tr className="text-left">
+                                  <th className="p-3 text-xs font-semibold text-muted-foreground uppercase">Task</th>
+                                  <th className="p-3 text-xs font-semibold text-muted-foreground uppercase text-center">Qty</th>
+                                  <th className="p-3 text-xs font-semibold text-muted-foreground uppercase">Time</th>
+                                  <th className="p-3 text-xs font-semibold text-muted-foreground uppercase text-center">Hours</th>
+                                  <th className="p-3 text-xs font-semibold text-muted-foreground uppercase text-right">Rate</th>
+                                  <th className="p-3 text-xs font-semibold text-muted-foreground uppercase text-right">Subtotal</th>
+                                </tr>
+                              </thead>
+                              <tbody>
+                                {laborTasks.map((task) => (
+                                  <tr key={task.id} className="border-b border-card-border/30 hover:bg-secondary/10 transition-colors">
+                                    <td className="p-3">
+                                      <div>
+                                        <p className="font-medium text-foreground">{task.task_name}</p>
+                                        {task.notes && (
+                                          <p className="text-xs text-muted-foreground mt-1 italic">{task.notes}</p>
+                                        )}
+                                      </div>
+                                    </td>
+                                    <td className="p-3 text-center font-medium text-foreground">
+                                      {task.quantity}
+                                    </td>
+                                    <td className="p-3 text-muted-foreground whitespace-nowrap">
+                                      {formatTime(task.start_time)} - {formatTime(task.end_time)}
+                                    </td>
+                                    <td className="p-3 text-center">
+                                      <div className="flex items-center justify-center gap-1 text-xs">
+                                        {task.regular_hours > 0 && (
+                                          <Badge variant="secondary" className="font-mono text-xs px-1.5 py-0.5">
+                                            ST:{task.regular_hours}
+                                          </Badge>
+                                        )}
+                                        {task.overtime_hours > 0 && (
+                                          <Badge variant="secondary" className="font-mono text-xs px-1.5 py-0.5 bg-yellow-100 text-yellow-800">
+                                            OT:{task.overtime_hours}
+                                          </Badge>
+                                        )}
+                                        {task.double_time_hours > 0 && (
+                                          <Badge variant="secondary" className="font-mono text-xs px-1.5 py-0.5 bg-orange-100 text-orange-800">
+                                            DT:{task.double_time_hours}
+                                          </Badge>
+                                        )}
+                                      </div>
+                                    </td>
+                                    <td className="p-3 text-right font-semibold text-foreground">
+                                      {formatCurrency(task.hourly_rate)}
+                                    </td>
+                                    <td className="p-3 text-right font-bold text-primary">
+                                      {formatCurrency(task.subtotal)}
+                                    </td>
+                                  </tr>
+                                ))}
+                              </tbody>
+                              <tfoot className="border-t border-card-border bg-muted/20">
+                                <tr>
+                                  <td colSpan={5} className="p-3 text-right text-sm font-semibold text-foreground">
+                                    Day Labor Total:
+                                  </td>
+                                  <td className="p-3 text-right font-bold text-primary">
+                                    {formatCurrency(laborTasks.reduce((sum, task) => sum + task.subtotal, 0))}
+                                  </td>
+                                </tr>
+                              </tfoot>
+                            </table>
+                          </div>
+                        </div>
+                      )}
                     </div>
                   </Card>
                 </div>
               </div>
-            ))}
+            );
+            })}
           </div>
         </div>
-
-        {/* Labor Schedule Section */}
-        {labor && labor.length > 0 && (
-          <div className="mt-8 pt-8 border-t border-card-border">
-            <div className="flex items-center gap-3 mb-6">
-              <Briefcase className="h-6 w-6 text-primary" />
-              <h2 className="text-2xl font-bold text-foreground">Labor Schedule</h2>
-            </div>
-
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead className="border-b-2 border-card-border bg-muted/30">
-                  <tr className="text-left">
-                    <th className="p-4 text-sm font-semibold text-muted-foreground uppercase tracking-wide">Task</th>
-                    <th className="p-4 text-sm font-semibold text-muted-foreground uppercase tracking-wide text-center">Qty</th>
-                    <th className="p-4 text-sm font-semibold text-muted-foreground uppercase tracking-wide">Date</th>
-                    <th className="p-4 text-sm font-semibold text-muted-foreground uppercase tracking-wide">Time</th>
-                    <th className="p-4 text-sm font-semibold text-muted-foreground uppercase tracking-wide text-center">Hours (ST/OT/DT)</th>
-                    <th className="p-4 text-sm font-semibold text-muted-foreground uppercase tracking-wide text-right">Rate</th>
-                    <th className="p-4 text-sm font-semibold text-muted-foreground uppercase tracking-wide text-right">Subtotal</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {labor.map((task, index) => (
-                    <tr key={task.id} className={`border-b border-card-border/50 hover:bg-secondary/20 transition-colors ${index % 2 === 0 ? 'bg-background' : 'bg-muted/10'}`}>
-                      <td className="p-4">
-                        <div>
-                          <p className="font-medium text-foreground">{task.task_name}</p>
-                          {task.notes && (
-                            <p className="text-xs text-muted-foreground mt-1 italic">{task.notes}</p>
-                          )}
-                        </div>
-                      </td>
-                      <td className="p-4 text-center font-medium text-foreground">
-                        {task.quantity}
-                      </td>
-                      <td className="p-4 text-muted-foreground">
-                        {format(new Date(task.date), 'MMM dd, yyyy')}
-                      </td>
-                      <td className="p-4 text-muted-foreground whitespace-nowrap">
-                        {formatTime(task.start_time)} - {formatTime(task.end_time)}
-                      </td>
-                      <td className="p-4 text-center">
-                        <div className="flex items-center justify-center gap-2 text-sm">
-                          {task.regular_hours > 0 && (
-                            <Badge variant="secondary" className="font-mono">
-                              ST: {task.regular_hours}
-                            </Badge>
-                          )}
-                          {task.overtime_hours > 0 && (
-                            <Badge variant="secondary" className="font-mono bg-yellow-100 text-yellow-800">
-                              OT: {task.overtime_hours}
-                            </Badge>
-                          )}
-                          {task.double_time_hours > 0 && (
-                            <Badge variant="secondary" className="font-mono bg-orange-100 text-orange-800">
-                              DT: {task.double_time_hours}
-                            </Badge>
-                          )}
-                        </div>
-                      </td>
-                      <td className="p-4 text-right font-semibold text-foreground">
-                        {formatCurrency(task.hourly_rate)}
-                      </td>
-                      <td className="p-4 text-right font-bold text-primary">
-                        {formatCurrency(task.subtotal)}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-                <tfoot className="border-t-2 border-card-border bg-muted/30">
-                  <tr>
-                    <td colSpan={6} className="p-4 text-right font-semibold text-foreground">
-                      Total Labor Cost:
-                    </td>
-                    <td className="p-4 text-right font-bold text-primary text-lg">
-                      {formatCurrency(labor.reduce((sum, task) => sum + task.subtotal, 0))}
-                    </td>
-                  </tr>
-                </tfoot>
-              </table>
-            </div>
-          </div>
-        )}
 
         <div className="mt-8 pt-8 border-t border-card-border bg-muted/30 -mx-6 px-6 pb-6 rounded-b-lg">
           <div className="mb-8">
