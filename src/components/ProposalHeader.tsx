@@ -58,8 +58,8 @@ export function ProposalHeader({ eventDetails, totalCost }: ProposalHeaderProps)
           }}
         />
 
-        {/* Soft Cloudy Gradient Overlay - Fades bottom half to opaque white */}
-        <div className="absolute inset-0 bg-gradient-to-b from-transparent from-0% via-background/30 via-40% via-background/80 via-50% to-background to-60%"></div>
+        {/* Soft Cloudy Gradient Overlay - Bottom 60% opaque white */}
+        <div className="absolute inset-0 bg-gradient-to-b from-transparent from-0% via-background/40 via-30% via-background/90 via-35% to-background to-40%"></div>
 
         {/* Content - positioned over the gradient */}
         <div className="relative">
