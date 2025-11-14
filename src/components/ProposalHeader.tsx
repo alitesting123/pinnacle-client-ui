@@ -51,23 +51,23 @@ export function ProposalHeader({ eventDetails, totalCost }: ProposalHeaderProps)
     <Card className="border-card-border shadow-md overflow-hidden">
       <div className="relative">
         {/* Background Image - Dynamic based on client */}
-        <div 
+        <div
           className="absolute inset-0 bg-cover bg-center bg-no-repeat"
           style={{
             backgroundImage: `url('${backgroundImage}')`
           }}
         />
-        
-        {/* Gradient Overlay - Transparent at top, opaque at bottom */}
-        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-background/20 to-background"></div>
-        
+
+        {/* Soft Cloudy Gradient Overlay - Creates a smooth blend from image to white */}
+        <div className="absolute inset-0 bg-gradient-to-b from-transparent from-0% via-background/30 via-40% via-background/60 via-60% via-background/85 via-75% to-background to-90%"></div>
+
         {/* Content - positioned over the gradient */}
         <div className="relative">
-          {/* Top spacing to show background image */}
-          <div className="h-24"></div>
-          
-          {/* Content area with full opacity background */}
-          <div className="bg-background pt-8 pb-8 px-8">
+          {/* Top spacing to show background image with soft blend */}
+          <div className="h-32"></div>
+
+          {/* Content area - no solid background to allow gradient blend */}
+          <div className="pt-8 pb-8 px-8">
             <div className="flex items-start justify-between mb-6">
               <div>
                 <div className="flex items-center gap-3 mb-2">
