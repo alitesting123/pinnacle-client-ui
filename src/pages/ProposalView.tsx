@@ -158,25 +158,26 @@ const ProposalView = () => {
   
   if (loading) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
+      <div className="min-h-screen bg-background flex items-center justify-center" role="main" aria-busy="true" aria-live="polite">
         <Card className="max-w-md w-full p-8 text-center space-y-4">
-          <div className="relative">
-            <Loader2 className="h-12 w-12 animate-spin mx-auto text-primary" />
-            <Shield className="h-6 w-6 absolute top-3 left-1/2 -translate-x-1/2 text-primary-foreground" />
+          <div className="relative" role="status" aria-label="Loading">
+            <Loader2 className="h-12 w-12 animate-spin mx-auto text-primary" aria-hidden="true" />
+            <Shield className="h-6 w-6 absolute top-3 left-1/2 -translate-x-1/2 text-primary-foreground" aria-hidden="true" />
+            <span className="sr-only">Validating your access, please wait...</span>
           </div>
-          
+
           <div>
-            <h2 className="text-xl font-semibold text-foreground mb-2">
+            <h1 className="text-xl font-semibold text-foreground mb-2">
               Validating Access
-            </h2>
+            </h1>
             <p className="text-muted-foreground text-sm">
               Verifying your secure access token...
             </p>
           </div>
-          
+
           <div className="pt-4 border-t border-border">
             <div className="flex items-center justify-center gap-2 text-xs text-muted-foreground">
-              <Lock className="h-3 w-3" />
+              <Lock className="h-3 w-3" aria-hidden="true" />
               <span>Encrypted JWT validation in progress</span>
             </div>
           </div>
@@ -193,12 +194,12 @@ const ProposalView = () => {
     const isExpired = error.toLowerCase().includes('expired');
     const isInvalid = error.toLowerCase().includes('invalid');
     const isNotFound = error.toLowerCase().includes('not found');
-    
+
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center p-6">
-        <Card className="max-w-lg w-full p-8 text-center space-y-6">
+      <div className="min-h-screen bg-background flex items-center justify-center p-6" role="main">
+        <Card className="max-w-lg w-full p-8 text-center space-y-6" role="alert" aria-live="assertive">
           {/* Error Icon */}
-          <div className="relative mx-auto w-16 h-16">
+          <div className="relative mx-auto w-16 h-16" aria-hidden="true">
             <div className={`absolute inset-0 rounded-full ${
               isExpired ? 'bg-orange-100' : 'bg-red-100'
             } flex items-center justify-center`}>
@@ -209,15 +210,15 @@ const ProposalView = () => {
               )}
             </div>
           </div>
-          
+
           {/* Error Message */}
           <div>
-            <h2 className="text-2xl font-semibold text-foreground mb-2">
+            <h1 className="text-2xl font-semibold text-foreground mb-2">
               {isExpired && 'Access Link Expired'}
               {isInvalid && 'Invalid Access Link'}
               {isNotFound && 'Proposal Not Found'}
               {!isExpired && !isInvalid && !isNotFound && 'Access Denied'}
-            </h2>
+            </h1>
             <p className="text-muted-foreground">{error}</p>
           </div>
           
@@ -247,19 +248,21 @@ const ProposalView = () => {
           
           {/* Actions */}
           <div className="space-y-2">
-            <Button 
-              onClick={() => navigate('/')} 
+            <Button
+              onClick={() => navigate('/')}
               className="w-full"
               size="lg"
+              aria-label="Return to home page"
             >
               Return to Home
             </Button>
-            
+
             <p className="text-xs text-muted-foreground">
               Questions? Email{' '}
-              <a 
-                href="mailto:support@pinnaclelive.com" 
+              <a
+                href="mailto:support@pinnaclelive.com"
                 className="text-primary hover:underline"
+                aria-label="Contact support via email at support@pinnaclelive.com"
               >
                 support@pinnaclelive.com
               </a>
@@ -276,18 +279,23 @@ const ProposalView = () => {
   
   if (!proposalData) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <Card className="max-w-md w-full p-8 text-center space-y-4">
-          <AlertCircle className="h-12 w-12 text-warning mx-auto" />
+      <div className="min-h-screen bg-background flex items-center justify-center" role="main">
+        <Card className="max-w-md w-full p-8 text-center space-y-4" role="alert" aria-live="polite">
+          <AlertCircle className="h-12 w-12 text-warning mx-auto" aria-hidden="true" />
           <div>
-            <h2 className="text-lg font-semibold text-foreground mb-2">
+            <h1 className="text-lg font-semibold text-foreground mb-2">
               No Proposal Data
-            </h2>
+            </h1>
             <p className="text-muted-foreground text-sm">
               Unable to load proposal information. Please try again or contact support.
             </p>
           </div>
-          <Button onClick={() => window.location.reload()} variant="outline" className="w-full">
+          <Button
+            onClick={() => window.location.reload()}
+            variant="outline"
+            className="w-full"
+            aria-label="Reload page to try loading proposal again"
+          >
             Reload Page
           </Button>
         </Card>
@@ -301,49 +309,62 @@ const ProposalView = () => {
   
   const timeRemaining = getTimeRemaining();
   const recipientEmail = tokenInfo?.recipient_email || searchParams.get('email') || 'Guest';
-  
+
   return (
     <div className="min-h-screen bg-background">
-      
+
+      {/* ============================================================================ */}
+      {/* SKIP LINKS FOR ACCESSIBILITY */}
+      {/* ============================================================================ */}
+
+      <a
+        href="#main-content"
+        className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-50 focus:px-4 focus:py-2 focus:bg-primary focus:text-primary-foreground focus:rounded-md focus:shadow-lg"
+      >
+        Skip to main content
+      </a>
+
       {/* ============================================================================ */}
       {/* SECURE ACCESS BANNER */}
       {/* ============================================================================ */}
-      
-      <div className="bg-gradient-to-r from-green-50 to-emerald-50 border-b border-green-200 sticky top-0 z-40 shadow-sm">
+
+      <header className="bg-gradient-to-r from-green-50 to-emerald-50 border-b border-green-200 sticky top-0 z-40 shadow-sm" role="banner">
         <div className="container mx-auto px-6 py-3">
           <div className="flex items-center justify-between text-sm flex-wrap gap-3">
-            
+
             {/* Left: Access Info */}
             <div className="flex items-center gap-4">
-              <Badge className="bg-green-600 text-white hover:bg-green-700 shadow-sm">
-                <Shield className="h-3 w-3 mr-1" />
+              <Badge className="bg-green-600 text-white hover:bg-green-700 shadow-sm" aria-label="Secure access status">
+                <Shield className="h-3 w-3 mr-1" aria-hidden="true" />
                 Secure Access
               </Badge>
-              
-              <div className="flex items-center gap-2 text-green-800">
-                <CheckCircle className="h-4 w-4" />
+
+              <div className="flex items-center gap-2 text-green-800" aria-label={`Logged in as ${recipientEmail}`}>
+                <CheckCircle className="h-4 w-4" aria-hidden="true" />
                 <span className="font-medium">{recipientEmail}</span>
               </div>
             </div>
-            
+
             {/* Right: Expiration Info */}
-            <div className="flex items-center gap-2">
-              <Clock className="h-4 w-4 text-green-700" />
+            <div className="flex items-center gap-2" role="status" aria-live="polite" aria-label={`Access ${timeRemaining || 'Valid for 24 hours'}`}>
+              <Clock className="h-4 w-4 text-green-700" aria-hidden="true" />
               <span className="font-semibold text-green-700">
                 {timeRemaining || 'Valid for 24 hours'}
               </span>
             </div>
-            
+
           </div>
         </div>
-      </div>
+      </header>
 
       {/* ============================================================================ */}
       {/* PROPOSAL DASHBOARD */}
       {/* ============================================================================ */}
-      
-      <ProposalDashboard proposalData={proposalData} />
-      
+
+      <main id="main-content" role="main">
+        <ProposalDashboard proposalData={proposalData} />
+      </main>
+
     </div>
   );
 };

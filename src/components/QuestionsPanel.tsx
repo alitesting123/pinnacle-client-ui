@@ -79,7 +79,7 @@ export function QuestionsPanel({ questions, onAnswerQuestion, onAskGeneralQuesti
       <div className="p-6">
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center gap-3">
-            <div className="p-2 bg-primary-light rounded-lg">
+            <div className="p-2 bg-primary-light rounded-lg" aria-hidden="true">
               <HelpCircle className="h-6 w-6 text-primary" />
             </div>
             <div>
@@ -89,13 +89,14 @@ export function QuestionsPanel({ questions, onAnswerQuestion, onAskGeneralQuesti
               </p>
             </div>
           </div>
-          
+
           {!showQuestionForm && (
             <Button
               onClick={() => setShowQuestionForm(true)}
               className="bg-gradient-primary hover:opacity-90"
+              aria-label="Open form to submit a new request"
             >
-              <Plus className="h-4 w-4 mr-2" />
+              <Plus className="h-4 w-4 mr-2" aria-hidden="true" />
               Submit Request
             </Button>
           )}
@@ -103,11 +104,11 @@ export function QuestionsPanel({ questions, onAnswerQuestion, onAskGeneralQuesti
 
         {/* Inline Question Form */}
         {showQuestionForm && (
-          <Card className="mb-6 border-primary/20 bg-primary-light/30">
+          <Card className="mb-6 border-primary/20 bg-primary-light/30" role="form" aria-label="Submit new request form">
             <div className="p-5">
               <div className="flex items-center justify-between mb-4">
                 <h3 className="font-semibold text-foreground flex items-center gap-2">
-                  <MessageSquare className="h-5 w-5 text-primary" />
+                  <MessageSquare className="h-5 w-5 text-primary" aria-hidden="true" />
                   Submit a General Request
                 </h3>
                 <Button
@@ -119,8 +120,10 @@ export function QuestionsPanel({ questions, onAnswerQuestion, onAskGeneralQuesti
                     setQuestion("");
                   }}
                   disabled={isSubmitting}
+                  aria-label="Close request form"
                 >
-                  <X className="h-4 w-4" />
+                  <X className="h-4 w-4" aria-hidden="true" />
+                  <span className="sr-only">Close form</span>
                 </Button>
               </div>
 
@@ -207,44 +210,45 @@ export function QuestionsPanel({ questions, onAnswerQuestion, onAskGeneralQuesti
         )}
 
         <Tabs value={filter} onValueChange={(value) => setFilter(value as typeof filter)}>
-          <TabsList className="grid w-full grid-cols-3 mb-6">
-            <TabsTrigger value="all" className="flex items-center gap-2">
-              <MessageSquare className="h-4 w-4" />
+          <TabsList className="grid w-full grid-cols-3 mb-6" role="tablist" aria-label="Filter questions by status">
+            <TabsTrigger value="all" className="flex items-center gap-2" aria-label={`View all ${questions.length} questions`}>
+              <MessageSquare className="h-4 w-4" aria-hidden="true" />
               All ({questions.length})
             </TabsTrigger>
-            <TabsTrigger value="pending" className="flex items-center gap-2">
-              <Clock className="h-4 w-4" />
+            <TabsTrigger value="pending" className="flex items-center gap-2" aria-label={`View ${pendingCount} pending questions`}>
+              <Clock className="h-4 w-4" aria-hidden="true" />
               Pending ({pendingCount})
             </TabsTrigger>
-            <TabsTrigger value="answered" className="flex items-center gap-2">
-              <CheckCircle className="h-4 w-4" />
+            <TabsTrigger value="answered" className="flex items-center gap-2" aria-label={`View ${answeredCount} answered questions`}>
+              <CheckCircle className="h-4 w-4" aria-hidden="true" />
               Answered ({answeredCount})
             </TabsTrigger>
           </TabsList>
 
-          <TabsContent value={filter}>
+          <TabsContent value={filter} role="tabpanel" aria-label={`${filter} questions`}>
             {filteredQuestions.length > 0 ? (
               <div className="space-y-6">
                 {/* General Questions Section */}
                 {generalQuestions.length > 0 && (
-                  <div>
+                  <section aria-label="General questions">
                     <div className="flex items-center gap-2 mb-4">
-                      <MessageSquare className="h-5 w-5 text-primary" />
+                      <MessageSquare className="h-5 w-5 text-primary" aria-hidden="true" />
                       <h3 className="text-lg font-semibold text-foreground">General</h3>
-                      <Badge variant="secondary" className="text-xs">
+                      <Badge variant="secondary" className="text-xs" aria-label={`${generalQuestions.length} requests in this section`}>
                         {generalQuestions.length} requests
                       </Badge>
                     </div>
-                    <div className="space-y-4">
+                    <div className="space-y-4" role="list" aria-label="General questions list">
                       {generalQuestions.map((question) => (
-                        <EquipmentQuestion
-                          key={question.id}
-                          question={question}
-                          onAnswer={handleAnswerQuestion}
-                        />
+                        <div key={question.id} role="listitem">
+                          <EquipmentQuestion
+                            question={question}
+                            onAnswer={handleAnswerQuestion}
+                          />
+                        </div>
                       ))}
                     </div>
-                  </div>
+                  </section>
                 )}
 
                 {/* Equipment Questions by Section */}

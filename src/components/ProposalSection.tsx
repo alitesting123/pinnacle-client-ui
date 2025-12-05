@@ -81,17 +81,22 @@ export function ProposalSection({
     <Card className="overflow-hidden border-card-border shadow-md">
       <Collapsible open={section.isExpanded} onOpenChange={() => onToggle(section.id)}>
         <CollapsibleTrigger asChild>
-          <div className="cursor-pointer bg-gradient-to-r from-secondary/50 to-secondary/30 hover:from-secondary/70 hover:to-secondary/50 transition-all p-4">
+          <button
+            className="w-full cursor-pointer bg-gradient-to-r from-secondary/50 to-secondary/30 hover:from-secondary/70 hover:to-secondary/50 transition-all p-4"
+            aria-expanded={section.isExpanded}
+            aria-controls={`section-content-${section.id}`}
+            aria-label={`${section.isExpanded ? 'Collapse' : 'Expand'} ${section.title} section with ${section.items.length} items`}
+          >
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
                 {section.isExpanded ? (
-                  <ChevronDown className="h-5 w-5 text-foreground transition-transform" />
+                  <ChevronDown className="h-5 w-5 text-foreground transition-transform" aria-hidden="true" />
                 ) : (
-                  <ChevronRight className="h-5 w-5 text-foreground transition-transform" />
+                  <ChevronRight className="h-5 w-5 text-foreground transition-transform" aria-hidden="true" />
                 )}
                 <div className="flex items-center gap-3">
-                  <span className="text-2xl">{getCategoryIcon(section.id)}</span>
-                  <div>
+                  <span className="text-2xl" role="img" aria-label={`${section.title} icon`}>{getCategoryIcon(section.id)}</span>
+                  <div className="text-left">
                     <h3 className="text-lg font-bold text-foreground">{section.title}</h3>
                     <p className="text-sm text-muted-foreground">
                       {section.items.length} items
@@ -100,27 +105,27 @@ export function ProposalSection({
                 </div>
               </div>
               <div className="flex items-center gap-4">
-                <Badge variant="secondary" className="font-semibold">
+                <Badge variant="secondary" className="font-semibold" aria-label={`Section total: ${formatCurrency(section.total)}`}>
                   {formatCurrency(section.total)}
                 </Badge>
               </div>
             </div>
-          </div>
+          </button>
         </CollapsibleTrigger>
 
-        <CollapsibleContent>
+        <CollapsibleContent id={`section-content-${section.id}`}>
           <div className="p-6">
-            <div className="overflow-x-auto">
-              <table className="w-full">
+            <div className="overflow-x-auto" role="region" aria-label={`${section.title} items table`} tabIndex={0}>
+              <table className="w-full" role="table" aria-label={`${section.title} proposal items`}>
                 <thead className="border-b border-card-border">
                   <tr className="text-left">
-                    <th className="p-4 text-sm font-semibold text-muted-foreground uppercase tracking-wide">Item</th>
-                    <th className="p-4 text-sm font-semibold text-muted-foreground uppercase tracking-wide text-center">Qty</th>
-                    <th className="p-4 text-sm font-semibold text-muted-foreground uppercase tracking-wide">Duration</th>
-                    <th className="p-4 text-sm font-semibold text-muted-foreground uppercase tracking-wide text-right">Unit Price</th>
-                    <th className="p-4 text-sm font-semibold text-muted-foreground uppercase tracking-wide text-right">Discount</th>
-                    <th className="p-4 text-sm font-semibold text-muted-foreground uppercase tracking-wide text-right">Subtotal</th>
-                    <th className="p-4 text-sm font-semibold text-muted-foreground uppercase tracking-wide text-center">Actions</th>
+                    <th scope="col" className="p-4 text-sm font-semibold text-muted-foreground uppercase tracking-wide">Item</th>
+                    <th scope="col" className="p-4 text-sm font-semibold text-muted-foreground uppercase tracking-wide text-center">Qty</th>
+                    <th scope="col" className="p-4 text-sm font-semibold text-muted-foreground uppercase tracking-wide">Duration</th>
+                    <th scope="col" className="p-4 text-sm font-semibold text-muted-foreground uppercase tracking-wide text-right">Unit Price</th>
+                    <th scope="col" className="p-4 text-sm font-semibold text-muted-foreground uppercase tracking-wide text-right">Discount</th>
+                    <th scope="col" className="p-4 text-sm font-semibold text-muted-foreground uppercase tracking-wide text-right">Subtotal</th>
+                    <th scope="col" className="p-4 text-sm font-semibold text-muted-foreground uppercase tracking-wide text-center">Actions</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -130,19 +135,19 @@ export function ProposalSection({
                         <div>
                           <div className="flex items-center gap-2">
                             <HoverCard>
-                              <HoverCardTrigger>
-                                <div className="flex items-center gap-2 cursor-help">
+                              <HoverCardTrigger asChild>
+                                <button className="flex items-center gap-2 cursor-help text-left" aria-label={`View details for ${item.description}`}>
                                   <p className="font-medium text-foreground">{item.description}</p>
-                                  <Info className="h-4 w-4 text-muted-foreground hover:text-primary transition-colors" />
-                                </div>
+                                  <Info className="h-4 w-4 text-muted-foreground hover:text-primary transition-colors" aria-hidden="true" />
+                                </button>
                               </HoverCardTrigger>
-                              <HoverCardContent className="w-96 bg-card/95 backdrop-blur">
+                              <HoverCardContent className="w-96 bg-card/95 backdrop-blur" role="tooltip">
                                 <div className="space-y-2">
                                   <h4 className="font-semibold text-card-foreground flex items-center gap-2">
-                                    {getCategoryIcon(item.category)}
+                                    <span role="img" aria-label={`${item.category} icon`}>{getCategoryIcon(item.category)}</span>
                                     {item.description}
                                   </h4>
-                                  <Badge variant="secondary" className="text-xs">
+                                  <Badge variant="secondary" className="text-xs" aria-label={`Category: ${item.category}`}>
                                     {item.category}
                                   </Badge>
                                   <p className="text-sm text-card-foreground/80 leading-relaxed">
@@ -183,26 +188,30 @@ export function ProposalSection({
                         {formatCurrency(item.subtotal)}
                       </td>
                       <td className="p-4 text-center">
-                        <div className="flex items-center justify-center gap-2">
+                        <div className="flex items-center justify-center gap-2" role="group" aria-label="Item actions">
                           <Button
                             variant="ghost"
                             size="sm"
                             onClick={() => onItemQuestion?.(section.id, item.id)}
                             className="hover:bg-warning/20"
+                            aria-label={`Ask question about ${item.description}`}
                             title="Ask question about this item"
                           >
-                            <HelpCircle className="h-4 w-4 text-warning" />
+                            <HelpCircle className="h-4 w-4 text-warning" aria-hidden="true" />
+                            <span className="sr-only">Ask question about {item.description}</span>
                           </Button>
-                          
+
                           {isAdditionalServices && onItemRemove && (
                             <Button
                               variant="ghost"
                               size="sm"
                               onClick={() => onItemRemove(section.id, item.id)}
                               className="hover:bg-destructive/20"
+                              aria-label={`Remove ${item.description} from proposal`}
                               title="Remove this item from proposal"
                             >
-                              <Trash2 className="h-4 w-4 text-destructive" />
+                              <Trash2 className="h-4 w-4 text-destructive" aria-hidden="true" />
+                              <span className="sr-only">Remove {item.description} from proposal</span>
                             </Button>
                           )}
                         </div>
@@ -213,11 +222,11 @@ export function ProposalSection({
               </table>
             </div>
 
-            <div className="flex justify-between items-center mt-4 pt-4 border-t border-card-border">
-              <p className="text-sm text-muted-foreground">
+            <div className="flex justify-between items-center mt-4 pt-4 border-t border-card-border" role="contentinfo" aria-label="Section summary">
+              <p className="text-sm text-muted-foreground" aria-label={`${section.items.length} items with ${section.items.reduce((sum, item) => sum + item.quantity, 0)} total quantity`}>
                 {section.items.length} items • {section.items.reduce((sum, item) => sum + item.quantity, 0)} total quantity
               </p>
-              <div className="text-right">
+              <div className="text-right" aria-label={`Section total: ${formatCurrency(section.total)}`}>
                 <p className="text-lg font-bold text-primary">{formatCurrency(section.total)}</p>
                 <p className="text-xs text-muted-foreground">Section Total</p>
               </div>

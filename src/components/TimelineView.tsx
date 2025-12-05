@@ -106,28 +106,32 @@ export function TimelineView({ timeline, totalCost, labor, pricing }: TimelineVi
         {/* Header with Toggle */}
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center gap-3">
-            <Calendar className="h-6 w-6 text-primary" />
+            <Calendar className="h-6 w-6 text-primary" aria-hidden="true" />
             <h2 className="text-2xl font-bold text-foreground">
               {viewMode === 'event' ? 'Event Timeline' : 'Labor Schedule Timeline'}
             </h2>
           </div>
 
           {/* View Toggle Buttons */}
-          <div className="flex gap-2">
+          <div className="flex gap-2" role="group" aria-label="Timeline view mode">
             <Button
               variant={viewMode === 'event' ? 'default' : 'outline'}
               onClick={() => setViewMode('event')}
               className="rounded-full"
+              aria-label="Switch to event timeline view"
+              aria-pressed={viewMode === 'event'}
             >
-              <Calendar className="h-4 w-4 mr-2" />
+              <Calendar className="h-4 w-4 mr-2" aria-hidden="true" />
               Event View
             </Button>
             <Button
               variant={viewMode === 'labor' ? 'default' : 'outline'}
               onClick={() => setViewMode('labor')}
               className="rounded-full"
+              aria-label="Switch to labor schedule timeline view"
+              aria-pressed={viewMode === 'labor'}
             >
-              <Briefcase className="h-4 w-4 mr-2" />
+              <Briefcase className="h-4 w-4 mr-2" aria-hidden="true" />
               Labor View
             </Button>
           </div>
@@ -135,18 +139,18 @@ export function TimelineView({ timeline, totalCost, labor, pricing }: TimelineVi
 
         {/* Event View */}
         {viewMode === 'event' && (
-          <div className="relative">
+          <div className="relative" role="list" aria-label="Event timeline">
             {/* Timeline line */}
-            <div className="absolute left-8 top-0 bottom-0 w-0.5 bg-border"></div>
+            <div className="absolute left-8 top-0 bottom-0 w-0.5 bg-border" aria-hidden="true"></div>
 
             <div className="space-y-8">
               {timeline.map((event, index) => {
                 const laborTasks = getLaborForDate(event.date);
                 const eventWithLaborCost = event.cost + laborTasks.reduce((sum, task) => sum + task.subtotal, 0);
                 return (
-              <div key={event.id} className="relative flex items-start gap-6">
+              <div key={event.id} className="relative flex items-start gap-6" role="listitem">
                 {/* Timeline dot */}
-                <div className="relative z-10 flex-shrink-0">
+                <div className="relative z-10 flex-shrink-0" aria-hidden="true">
                   <div className="w-4 h-4 bg-primary rounded-full border-4 border-background shadow-md"></div>
                 </div>
 
@@ -159,36 +163,37 @@ export function TimelineView({ timeline, totalCost, labor, pricing }: TimelineVi
                         <div className="flex-1">
                           <div className="flex items-center gap-3 mb-2 flex-wrap">
                             <h3 className="text-xl font-semibold text-foreground">{event.title}</h3>
-                            <Badge className={getEventColor(event.title)}>
+                            <Badge className={getEventColor(event.title)} aria-label={`Event day ${index + 1}`}>
                               Day {index + 1}
                             </Badge>
                             {event.status && (
-                              <Badge className={getStatusColor(event.status)}>
+                              <Badge className={getStatusColor(event.status)} role="status" aria-label={`Status: ${event.status}`}>
                                 {event.status}
+                                <span className="sr-only">. Status is {event.status}</span>
                               </Badge>
                             )}
                           </div>
 
                           {/* Basic Info Grid */}
-                          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 text-sm mb-3">
-                            <div className="flex items-center gap-2 text-muted-foreground">
-                              <Calendar className="h-4 w-4 flex-shrink-0" />
+                          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 text-sm mb-3" role="list" aria-label="Event details">
+                            <div className="flex items-center gap-2 text-muted-foreground" role="listitem">
+                              <Calendar className="h-4 w-4 flex-shrink-0" aria-hidden="true" />
                               <span>{format(new Date(event.date), 'EEEE, MMM dd')}</span>
                             </div>
 
-                            <div className="flex items-center gap-2 text-muted-foreground">
-                              <Clock className="h-4 w-4 flex-shrink-0" />
+                            <div className="flex items-center gap-2 text-muted-foreground" role="listitem">
+                              <Clock className="h-4 w-4 flex-shrink-0" aria-hidden="true" />
                               <span>{event.startTime} - {event.endTime} ({calculateDuration(event.startTime, event.endTime)})</span>
                             </div>
 
-                            <div className="flex items-center gap-2 text-muted-foreground">
-                              <MapPin className="h-4 w-4 flex-shrink-0" />
+                            <div className="flex items-center gap-2 text-muted-foreground" role="listitem">
+                              <MapPin className="h-4 w-4 flex-shrink-0" aria-hidden="true" />
                               <span>{event.location}</span>
                             </div>
 
                             {event.crewCount && (
-                              <div className="flex items-center gap-2 text-muted-foreground">
-                                <Users className="h-4 w-4 flex-shrink-0" />
+                              <div className="flex items-center gap-2 text-muted-foreground" role="listitem">
+                                <Users className="h-4 w-4 flex-shrink-0" aria-hidden="true" />
                                 <span>{event.crewCount} crew members</span>
                               </div>
                             )}
@@ -197,7 +202,7 @@ export function TimelineView({ timeline, totalCost, labor, pricing }: TimelineVi
                           {/* Lead Technician */}
                           {event.leadTechnician && (
                             <div className="flex items-center gap-2 text-sm text-muted-foreground mb-3">
-                              <User className="h-4 w-4 flex-shrink-0" />
+                              <User className="h-4 w-4 flex-shrink-0" aria-hidden="true" />
                               <span><strong>Lead:</strong> {event.leadTechnician}</span>
                             </div>
                           )}
@@ -293,19 +298,19 @@ export function TimelineView({ timeline, totalCost, labor, pricing }: TimelineVi
                       {laborTasks.length > 0 && (
                         <div className="mt-6 pt-6 border-t border-card-border">
                           <h4 className="font-semibold text-foreground mb-4 flex items-center gap-2">
-                            <Briefcase className="h-4 w-4" />
+                            <Briefcase className="h-4 w-4" aria-hidden="true" />
                             Labor Schedule for this Day
                           </h4>
-                          <div className="overflow-x-auto">
-                            <table className="w-full text-sm">
+                          <div className="overflow-x-auto" role="region" aria-label="Labor schedule table" tabIndex={0}>
+                            <table className="w-full text-sm" role="table" aria-label="Day labor schedule">
                               <thead className="border-b border-card-border bg-muted/20">
                                 <tr className="text-left">
-                                  <th className="p-3 text-xs font-semibold text-muted-foreground uppercase">Task</th>
-                                  <th className="p-3 text-xs font-semibold text-muted-foreground uppercase text-center">Qty</th>
-                                  <th className="p-3 text-xs font-semibold text-muted-foreground uppercase">Time</th>
-                                  <th className="p-3 text-xs font-semibold text-muted-foreground uppercase text-center">Hours</th>
-                                  <th className="p-3 text-xs font-semibold text-muted-foreground uppercase text-right">Rate</th>
-                                  <th className="p-3 text-xs font-semibold text-muted-foreground uppercase text-right">Subtotal</th>
+                                  <th scope="col" className="p-3 text-xs font-semibold text-muted-foreground uppercase">Task</th>
+                                  <th scope="col" className="p-3 text-xs font-semibold text-muted-foreground uppercase text-center">Qty</th>
+                                  <th scope="col" className="p-3 text-xs font-semibold text-muted-foreground uppercase">Time</th>
+                                  <th scope="col" className="p-3 text-xs font-semibold text-muted-foreground uppercase text-center">Hours</th>
+                                  <th scope="col" className="p-3 text-xs font-semibold text-muted-foreground uppercase text-right">Rate</th>
+                                  <th scope="col" className="p-3 text-xs font-semibold text-muted-foreground uppercase text-right">Subtotal</th>
                                 </tr>
                               </thead>
                               <tbody>

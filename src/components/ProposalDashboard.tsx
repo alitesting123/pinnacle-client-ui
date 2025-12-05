@@ -321,23 +321,25 @@ export function ProposalDashboard({ proposalData: initialProposalData }: Proposa
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
-      <div className="sticky top-0 z-40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b border-border">
+      <header className="sticky top-0 z-40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b border-border" role="banner">
         <div className="container mx-auto px-6 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
-              <div className="flex items-baseline gap-2">
+              <div className="flex items-baseline gap-2" role="img" aria-label="Pinnacle Live Logo">
                 <span
                   className="text-2xl font-light tracking-tight"
                   style={{
                     color: '#1a1a1a',
                     fontFamily: 'Inter, system-ui, sans-serif'
                   }}
+                  aria-hidden="true"
                 >
                   pinnacle
                 </span>
                 <div
                   className="w-0.5 h-6"
                   style={{ backgroundColor: '#B8860B' }}
+                  aria-hidden="true"
                 />
                 <span
                   className="text-lg font-normal tracking-wider uppercase"
@@ -345,16 +347,17 @@ export function ProposalDashboard({ proposalData: initialProposalData }: Proposa
                     color: '#B8860B',
                     fontFamily: 'Inter, system-ui, sans-serif'
                   }}
+                  aria-hidden="true"
                 >
                   live<sup className="text-xs">™</sup>
                 </span>
               </div>
-              <Badge variant="secondary" className="font-medium">
+              <Badge variant="secondary" className="font-medium" aria-label="Application type">
                 Proposal Portal
               </Badge>
               {isProposalSigned && (
-                <Badge className="bg-success text-success-foreground">
-                  <CheckCircle className="h-3 w-3 mr-1" />
+                <Badge className="bg-success text-success-foreground" role="status" aria-label="Proposal status: Approved">
+                  <CheckCircle className="h-3 w-3 mr-1" aria-hidden="true" />
                   Approved
                 </Badge>
               )}
@@ -367,21 +370,22 @@ export function ProposalDashboard({ proposalData: initialProposalData }: Proposa
                   size="default"
                   onClick={() => setIsConfirmationModalOpen(true)}
                   className="bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white shadow-lg"
+                  aria-label="Approve this proposal and provide your signature"
                 >
-                  <CheckCircle className="h-4 w-4 mr-2" />
+                  <CheckCircle className="h-4 w-4 mr-2" aria-hidden="true" />
                   Approve Proposal
                 </Button>
               ) : (
-                <Button variant="outline" size="sm" className="hover:bg-secondary">
-                 
-                 
+                <Button variant="outline" size="sm" className="hover:bg-secondary" aria-label="Proposal already approved">
+
+
                 </Button>
               )}
-              
+
             </div>
           </div>
         </div>
-      </div>
+      </header>
 
       {/* Main Content */}
       <div className="container mx-auto px-6 py-8">
@@ -394,10 +398,10 @@ export function ProposalDashboard({ proposalData: initialProposalData }: Proposa
 
           {/* Confirmation Info Display */}
           {confirmationInfo && (
-            <div className="bg-success/10 border border-success/20 rounded-lg p-4">
+            <div className="bg-success/10 border border-success/20 rounded-lg p-4" role="status" aria-live="polite" aria-label="Proposal approval confirmation">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                  <CheckCircle className="h-5 w-5 text-success" />
+                  <CheckCircle className="h-5 w-5 text-success" aria-hidden="true" />
                   <div>
                     <p className="font-semibold text-success">Proposal Approved</p>
                     <p className="text-sm text-muted-foreground">
@@ -412,7 +416,7 @@ export function ProposalDashboard({ proposalData: initialProposalData }: Proposa
                     </p>
                   </div>
                 </div>
-                <Badge className="bg-success text-success-foreground">
+                <Badge className="bg-success text-success-foreground" aria-label="Current status">
                   Status: Confirmed
                 </Badge>
               </div>
@@ -421,44 +425,47 @@ export function ProposalDashboard({ proposalData: initialProposalData }: Proposa
 
           {/* Main Tabs */}
           <Tabs defaultValue="timeline" className="w-full">
-            <TabsList className="grid w-full grid-cols-4 bg-secondary/50">
-              <TabsTrigger value="timeline" className="flex items-center gap-2">
-                <Calendar className="h-4 w-4" />
+            <TabsList className="grid w-full grid-cols-4 bg-secondary/50" role="tablist" aria-label="Proposal sections">
+              <TabsTrigger value="timeline" className="flex items-center gap-2" aria-label="View event timeline">
+                <Calendar className="h-4 w-4" aria-hidden="true" />
                 Timeline
               </TabsTrigger>
-              <TabsTrigger value="proposal" className="flex items-center gap-2">
-                <FileText className="h-4 w-4" />
+              <TabsTrigger value="proposal" className="flex items-center gap-2" aria-label="View proposal details and breakdown">
+                <FileText className="h-4 w-4" aria-hidden="true" />
                 Proposal Details
               </TabsTrigger>
-              <TabsTrigger value="questions" className="flex items-center gap-2 relative">
-                <HelpCircle className="h-4 w-4" />
+              <TabsTrigger value="questions" className="flex items-center gap-2 relative" aria-label={`View requests and questions${questions.filter(q => q.status === 'pending').length > 0 ? ` (${questions.filter(q => q.status === 'pending').length} pending)` : ''}`}>
+                <HelpCircle className="h-4 w-4" aria-hidden="true" />
                 Requests
                 {questions.filter(q => q.status === 'pending').length > 0 && (
-                  <Badge className="absolute -top-2 -right-2 h-5 w-5 p-0 text-xs bg-warning text-warning-foreground flex items-center justify-center min-w-[1.25rem]">
+                  <Badge className="absolute -top-2 -right-2 h-5 w-5 p-0 text-xs bg-warning text-warning-foreground flex items-center justify-center min-w-[1.25rem]" role="status" aria-label={`${questions.filter(q => q.status === 'pending').length} pending requests`}>
                     {questions.filter(q => q.status === 'pending').length}
+                    <span className="sr-only"> pending requests</span>
                   </Badge>
                 )}
               </TabsTrigger>
-              <TabsTrigger value="suggestions" className="flex items-center gap-2">
-                <Lightbulb className="h-4 w-4" />
+              <TabsTrigger value="suggestions" className="flex items-center gap-2" aria-label="View sales suggestions and recommendations">
+                <Lightbulb className="h-4 w-4" aria-hidden="true" />
                 Sale's suggestion
               </TabsTrigger>
             </TabsList>
 
-            <TabsContent value="proposal" className="space-y-6 mt-8">
+            <TabsContent value="proposal" className="space-y-6 mt-8" role="tabpanel" aria-label="Proposal details">
               {/* Section Controls */}
-              <div className="flex items-center justify-between p-4 bg-secondary/30 rounded-lg">
+              <div className="flex items-center justify-between p-4 bg-secondary/30 rounded-lg" role="region" aria-label="Proposal breakdown controls">
                 <div className="flex items-center gap-4">
-                  <h3 className="font-semibold text-foreground">Proposal breakdown</h3>
-                  <Badge variant="secondary">
+                  <h2 className="font-semibold text-foreground">Proposal breakdown</h2>
+                  <Badge variant="secondary" aria-label={`${sections.length} categories in proposal`}>
                     {sections.length} categories
                   </Badge>
                 </div>
-                <div className="flex gap-2">
+                <div className="flex gap-2" role="group" aria-label="Section visibility controls">
                   <Button
                     size="sm"
                     onClick={expandAllSections}
                     className="bg-primary hover:bg-primary/90 text-primary-foreground rounded-full px-4"
+                    aria-label="Expand all sections to view all items"
+                    aria-controls="proposal-sections"
                   >
                     Expand All
                   </Button>
@@ -466,6 +473,8 @@ export function ProposalDashboard({ proposalData: initialProposalData }: Proposa
                     size="sm"
                     onClick={collapseAllSections}
                     className="bg-primary hover:bg-primary/90 text-primary-foreground rounded-full px-4"
+                    aria-label="Collapse all sections to hide items"
+                    aria-controls="proposal-sections"
                   >
                     Collapse All
                   </Button>
@@ -473,7 +482,7 @@ export function ProposalDashboard({ proposalData: initialProposalData }: Proposa
               </div>
 
               {/* Proposal Sections */}
-              <div className="space-y-6">
+              <div className="space-y-6" id="proposal-sections" role="region" aria-label="Proposal sections list">
                 {sections.map((section) => (
                   <ProposalSection
                     key={section.id}
@@ -492,19 +501,19 @@ export function ProposalDashboard({ proposalData: initialProposalData }: Proposa
               </p>
 
               {/* Total Summary */}
-              <div className="bg-gradient-subtle p-6 rounded-lg border border-card-border shadow-md">
+              <div className="bg-gradient-subtle p-6 rounded-lg border border-card-border shadow-md" role="region" aria-label="Proposal total summary">
                 <div className="flex items-center justify-between">
                   <div>
-                    <h3 className="text-2xl font-bold text-foreground">Proposal Total</h3>
+                    <h2 className="text-2xl font-bold text-foreground">Proposal Total</h2>
                     <p className="text-muted-foreground">
                       All equipment, labor, and services included
                     </p>
                   </div>
-                  <div className="text-right">
-                    <p className="text-4xl font-bold text-primary">
+                  <div className="text-right" aria-label={`Total cost: $${totalCost.toLocaleString()}`}>
+                    <p className="text-4xl font-bold text-primary" aria-label={`$${totalCost.toLocaleString()}`}>
                       ${totalCost.toLocaleString()}
                     </p>
-                    <p className="text-sm text-muted-foreground">
+                    <p className="text-sm text-muted-foreground" aria-label={`${sections.reduce((total, section) => total + section.items.length, 0)} line items total`}>
                       {sections.reduce((total, section) => total + section.items.length, 0)} line items
                     </p>
                   </div>
@@ -512,7 +521,7 @@ export function ProposalDashboard({ proposalData: initialProposalData }: Proposa
               </div>
             </TabsContent>
 
-            <TabsContent value="timeline" className="mt-8">
+            <TabsContent value="timeline" className="mt-8" role="tabpanel" aria-label="Timeline view">
               <TimelineView
                 timeline={proposalData.timeline}
                 totalCost={totalCost}
@@ -521,15 +530,16 @@ export function ProposalDashboard({ proposalData: initialProposalData }: Proposa
               />
             </TabsContent>
 
-            <TabsContent value="questions" className="mt-8">
+            <TabsContent value="questions" className="mt-8" role="tabpanel" aria-label="Questions and requests">
               {questionsLoading ? (
-                <Card className="border-card-border shadow-md p-12 text-center">
-                  <Loader2 className="h-8 w-8 animate-spin mx-auto text-primary mb-4" />
+                <Card className="border-card-border shadow-md p-12 text-center" role="status" aria-live="polite" aria-busy="true">
+                  <Loader2 className="h-8 w-8 animate-spin mx-auto text-primary mb-4" aria-hidden="true" />
                   <p className="text-muted-foreground">Loading questions...</p>
+                  <span className="sr-only">Loading questions, please wait</span>
                 </Card>
               ) : questionsError ? (
-                <Card className="border-card-border shadow-md p-12 text-center">
-                  <AlertCircle className="h-8 w-8 mx-auto text-destructive mb-4" />
+                <Card className="border-card-border shadow-md p-12 text-center" role="alert" aria-live="assertive">
+                  <AlertCircle className="h-8 w-8 mx-auto text-destructive mb-4" aria-hidden="true" />
                   <p className="text-foreground font-semibold mb-2">Failed to Load Questions</p>
                   <p className="text-muted-foreground text-sm">{questionsError}</p>
                 </Card>
@@ -542,7 +552,7 @@ export function ProposalDashboard({ proposalData: initialProposalData }: Proposa
               )}
             </TabsContent>
 
-            <TabsContent value="suggestions" className="mt-8">
+            <TabsContent value="suggestions" className="mt-8" role="tabpanel" aria-label="Sales suggestions">
               <SuggestionPanel
                 proposalId={proposalId}
                 onApplySuggestion={handleApplySuggestion}

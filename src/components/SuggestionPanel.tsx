@@ -150,39 +150,39 @@ export function SuggestionPanel({ onApplySuggestion }: SuggestionPanelProps) {
       <div className="p-6">
         <div className="mb-6">
           <h2 className="text-2xl font-bold text-foreground mb-2">Product Recommendations</h2>
-          <p className="text-sm text-muted-foreground">
+          <p className="text-sm text-muted-foreground" aria-label={`${suggestions.length} products suggested for this event`}>
             {suggestions.length} products suggested for this event
           </p>
         </div>
 
-        <div className="space-y-4">
+        <div className="space-y-4" role="list" aria-label="Product suggestions">
           {suggestions.map((suggestion) => (
-            <Card key={suggestion.id} className="border border-card-border">
-              <div className="p-4">
+            <Card key={suggestion.id} className="border border-card-border" role="listitem">
+              <article className="p-4" aria-labelledby={`suggestion-title-${suggestion.id}`}>
                 {/* Header Row */}
                 <div className="flex items-start justify-between mb-3">
                   <div className="flex-1">
-                    <div className="flex items-center gap-2 mb-2">
-                      <Badge variant="outline" className="text-xs">
+                    <div className="flex items-center gap-2 mb-2" role="group" aria-label="Product tags">
+                      <Badge variant="outline" className="text-xs" aria-label={`Type: ${getTypeLabel(suggestion.type)}`}>
                         {getTypeLabel(suggestion.type)}
                       </Badge>
-                      <Badge variant="outline" className="text-xs">
+                      <Badge variant="outline" className="text-xs" aria-label={`Category: ${suggestion.category}`}>
                         {suggestion.category}
                       </Badge>
                       {suggestion.confidence === 'high' && (
-                        <Badge variant="secondary" className="text-xs bg-green-100 text-green-800">
+                        <Badge variant="secondary" className="text-xs bg-green-100 text-green-800" role="status" aria-label="Highly recommended">
                           Recommended
                         </Badge>
                       )}
                     </div>
-                    <h3 className="font-semibold text-base text-foreground">
+                    <h3 id={`suggestion-title-${suggestion.id}`} className="font-semibold text-base text-foreground">
                       {suggestion.title}
                     </h3>
                     <p className="text-sm text-muted-foreground mt-1">
                       {suggestion.description}
                     </p>
                   </div>
-                  <div className="text-right ml-4">
+                  <div className="text-right ml-4" aria-label={`Price: ${formatCurrency(suggestion.price)}`}>
                     <p className="text-xl font-bold text-foreground">
                       {formatCurrency(suggestion.price)}
                     </p>
@@ -196,9 +196,9 @@ export function SuggestionPanel({ onApplySuggestion }: SuggestionPanelProps) {
                     <h4 className="text-xs font-semibold text-muted-foreground uppercase mb-2">
                       Features
                     </h4>
-                    <ul className="space-y-1">
+                    <ul className="space-y-1" role="list" aria-label={`${suggestion.productName} features`}>
                       {suggestion.features.slice(0, 4).map((feature, idx) => (
-                        <li key={idx} className="text-sm text-foreground">
+                        <li key={idx} className="text-sm text-foreground" role="listitem">
                           • {feature}
                         </li>
                       ))}
@@ -210,9 +210,9 @@ export function SuggestionPanel({ onApplySuggestion }: SuggestionPanelProps) {
                     <h4 className="text-xs font-semibold text-muted-foreground uppercase mb-2">
                       Benefits
                     </h4>
-                    <ul className="space-y-1">
+                    <ul className="space-y-1" role="list" aria-label={`${suggestion.productName} benefits`}>
                       {suggestion.benefits.map((benefit, idx) => (
-                        <li key={idx} className="text-sm text-foreground">
+                        <li key={idx} className="text-sm text-foreground" role="listitem">
                           • {benefit}
                         </li>
                       ))}
@@ -225,14 +225,15 @@ export function SuggestionPanel({ onApplySuggestion }: SuggestionPanelProps) {
                   <div className="text-sm text-muted-foreground">
                     {suggestion.compatibility}
                   </div>
-                  <Button 
+                  <Button
                     size="sm"
                     onClick={() => onApplySuggestion?.(suggestion)}
+                    aria-label={`Add ${suggestion.productName} to proposal for ${formatCurrency(suggestion.price)}`}
                   >
                     Add to Proposal
                   </Button>
                 </div>
-              </div>
+              </article>
             </Card>
           ))}
         </div>
