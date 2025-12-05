@@ -488,7 +488,7 @@ export function ProposalDashboard({ proposalData: initialProposalData }: Proposa
 
               {/* Labor Breakdown Note */}
               <p className="text-xs text-muted-foreground text-right mb-2">
-                To see a breakdown of the labor, check the Timeline view
+                *To see a breakdown of the labor, check the Timeline view
               </p>
 
               {/* Total Summary */}
