@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { HelpCircle, Send, Clock, CheckCircle, MessageSquare } from "lucide-react";
+import { HelpCircle, Send, Clock, CheckCircle, MessageSquare, Sparkles, Brain } from "lucide-react";
 import { format } from "date-fns";
 import { EquipmentQuestionData } from "@/types/proposal";
 
@@ -84,7 +84,71 @@ export function EquipmentQuestion({ question, onAnswer }: EquipmentQuestionProps
             <p className="text-sm text-foreground leading-relaxed">{question.question}</p>
           </div>
 
-          {question.answer && (
+          {/* AI Thinking Animation */}
+          {question.status === 'pending' && question.ai_thinking && (
+            <div className="bg-green-50 dark:bg-green-950/30 p-4 rounded-lg border border-green-200 dark:border-green-800">
+              <div className="flex items-center gap-3">
+                <div className="relative">
+                  <Brain className="h-5 w-5 text-green-600 dark:text-green-400 animate-pulse" />
+                  <div className="absolute -top-1 -right-1">
+                    <Sparkles className="h-3 w-3 text-green-500 animate-bounce" />
+                  </div>
+                </div>
+                <div className="flex-1">
+                  <div className="flex items-center gap-2 mb-1">
+                    <span className="text-sm font-medium text-green-700 dark:text-green-300">AI is thinking...</span>
+                    <div className="flex gap-1">
+                      <div className="w-1.5 h-1.5 bg-green-500 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
+                      <div className="w-1.5 h-1.5 bg-green-500 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
+                      <div className="w-1.5 h-1.5 bg-green-500 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
+                    </div>
+                  </div>
+                  <p className="text-xs text-green-600 dark:text-green-400">Analyzing your question and proposal details...</p>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* AI Generated Answer - Green Card */}
+          {question.answer && question.ai_generated && (
+            <div className="bg-green-50 dark:bg-green-950/30 p-4 rounded-lg border-l-4 border-green-500">
+              <div className="flex items-center gap-2 mb-3">
+                <div className="p-1.5 bg-green-100 dark:bg-green-900 rounded-full">
+                  <Sparkles className="h-4 w-4 text-green-600 dark:text-green-400" />
+                </div>
+                <Badge className="bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300 border-green-300 dark:border-green-700">
+                  AI Suggested Answer
+                </Badge>
+                {question.ai_details?.confidence && (
+                  <span className="text-xs text-green-600 dark:text-green-400">
+                    {Math.round(question.ai_details.confidence * 100)}% confidence
+                  </span>
+                )}
+              </div>
+              <div className="flex items-start gap-2 mb-2">
+                <Avatar className="h-5 w-5">
+                  <AvatarFallback className="text-xs bg-green-500 text-white">
+                    AI
+                  </AvatarFallback>
+                </Avatar>
+                <span className="text-xs text-muted-foreground">
+                  Answered by {question.answeredBy} • {format(new Date(question.answeredAt!), "MMM dd, h:mm a")}
+                </span>
+              </div>
+              <p className="text-sm text-foreground leading-relaxed whitespace-pre-wrap">{question.answer}</p>
+              {question.classification?.category && (
+                <div className="mt-3 pt-3 border-t border-green-200 dark:border-green-800">
+                  <p className="text-xs text-green-600 dark:text-green-400 italic">
+                    Category: {question.classification.category}
+                    {question.classification.reasoning && ` • ${question.classification.reasoning}`}
+                  </p>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Human Answer - Regular Card */}
+          {question.answer && !question.ai_generated && (
             <div className="bg-accent-light p-4 rounded-lg border-l-4 border-accent">
               <div className="flex items-center gap-2 mb-2">
                 <Avatar className="h-5 w-5">
@@ -100,7 +164,7 @@ export function EquipmentQuestion({ question, onAnswer }: EquipmentQuestionProps
             </div>
           )}
 
-          {question.status === 'pending' && (
+          {question.status === 'pending' && !question.ai_thinking && (
             <div className="space-y-3">
               {!isAnswering ? (
                 <Button

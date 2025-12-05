@@ -137,4 +137,18 @@ export interface EquipmentQuestionData {
   answeredBy?: string;
   answeredAt?: string;
   replies?: QuestionReply[];
+  ai_generated?: boolean;
+  ai_thinking?: boolean;
+  ai_details?: {
+    ai_answer?: string;
+    confidence?: number;
+    method?: string;
+    sources?: any[];
+  };
+  classification?: {
+    category?: string;
+    reasoning?: string;
+    auto_answered?: boolean;
+    rag_enabled?: boolean;
+  };
 }

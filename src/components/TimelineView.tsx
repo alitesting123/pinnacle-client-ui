@@ -253,7 +253,7 @@ export function TimelineView({ timeline, totalCost, labor, pricing }: TimelineVi
                         </div>
 
                         {/* Milestones */}
-                        {event.milestones && event.milestones.length > 0 && (
+                        {event.milestones && Array.isArray(event.milestones) && event.milestones.length > 0 && (
                           <div>
                             <h4 className="font-semibold text-foreground mb-3 flex items-center gap-2">
                               <CheckCircle2 className="h-4 w-4" />
@@ -271,7 +271,7 @@ export function TimelineView({ timeline, totalCost, labor, pricing }: TimelineVi
                         )}
 
                         {/* Notes */}
-                        {event.notes && event.notes.length > 0 && (
+                        {event.notes && Array.isArray(event.notes) && event.notes.length > 0 && (
                           <div>
                             <h4 className="font-semibold text-foreground mb-3 flex items-center gap-2">
                               <FileText className="h-4 w-4" />
